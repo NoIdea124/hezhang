@@ -1,0 +1,25 @@
+{
+  "name": "@hezhang/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.0.0",
+    "@fastify/jwt": "^10.0.0",
+    "@fastify/websocket": "^11.0.0",
+    "@hezhang/shared": "*",
+    "better-sqlite3": "^11.7.0",
+    "dotenv": "^16.4.0",
+    "fastify": "^5.2.0",
+    "fastify-plugin": "^5.1.0",
+    "openai": "^4.77.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.0",
+    "tsx": "^4.19.0"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "合账 - 夫妻共同记账",
+  "short_name": "合账",
+  "description": "AI 帮你们一起管钱",
+  "start_url": "/",
+  "id": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4F46E5",
+  "orientation": "portrait",
+  "categories": ["finance"],
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
