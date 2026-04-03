@@ -20,7 +20,7 @@ export default function AppTabBar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const activeKey = tabs.find((t) => pathname.startsWith(t.key))?.key || '/chat';
+  const activeKey = tabs.find((t) => pathname?.startsWith(t.key))?.key || '/chat';
 
   return (
     <div

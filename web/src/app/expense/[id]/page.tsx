@@ -11,7 +11,7 @@ import type { Expense } from '@hezhang/shared';
 export default function EditExpensePage() {
   const router = useRouter();
   const params = useParams();
-  const id = params.id as string;
+  const id = params?.id as string;
   const [expense, setExpense] = useState<Expense | null>(null);
   const [loading, setLoading] = useState(false);
 

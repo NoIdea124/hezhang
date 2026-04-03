@@ -12,7 +12,7 @@ interface UseWebSocketOptions {
 export function useWebSocket({ onMessage }: UseWebSocketOptions) {
   const wsRef = useRef<WebSocket | null>(null);
   const retryCount = useRef(0);
-  const retryTimer = useRef<ReturnType<typeof setTimeout>>();
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onMessageRef = useRef(onMessage);
   onMessageRef.current = onMessage;
 

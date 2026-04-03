@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { NavBar, Toast } from 'antd-mobile';
 import { LeftOutline, RightOutline } from 'antd-mobile-icons';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -47,9 +47,21 @@ function formatMonth(month: string): string {
 }
 
 export default function ReportPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+        <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-secondary)' }}>加载中...</div>
+      </div>
+    }>
+      <ReportContent />
+    </Suspense>
+  );
+}
+
+function ReportContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialMonth = searchParams.get('month') || getCurrentMonth();
+  const initialMonth = searchParams?.get('month') || getCurrentMonth();
   const [month, setMonth] = useState(initialMonth);
   const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
