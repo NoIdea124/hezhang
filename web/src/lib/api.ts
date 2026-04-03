@@ -1,4 +1,10 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+function getApiUrl(): string {
+  const env = process.env.NEXT_PUBLIC_API_URL;
+  if (env) return env;
+  if (typeof window === 'undefined') return 'http://localhost:3001/api';
+  // 运行时根据当前页面地址推导后端地址（同 IP，端口 3001）
+  return `${window.location.protocol}//${window.location.hostname}:3001/api`;
+}
 
 export async function apiFetch<T>(
   path: string,
@@ -15,7 +21,7 @@ export async function apiFetch<T>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(`${getApiUrl()}${path}`, {
     ...options,
     headers,
   });

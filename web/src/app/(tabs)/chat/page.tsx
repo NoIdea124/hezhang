@@ -50,7 +50,7 @@ export default function ChatPage() {
   const handleSend = useCallback(async (message: string) => {
     // Add user message
     const userMsg: ChatMessage = {
-      id: crypto.randomUUID(),
+      id: crypto.randomUUID?.() ?? Math.random().toString(36).slice(2),
       role: 'user',
       content: message,
       timestamp: new Date().toISOString(),
@@ -65,7 +65,7 @@ export default function ChatPage() {
       });
 
       const aiMsg: ChatMessage = {
-        id: crypto.randomUUID(),
+        id: crypto.randomUUID?.() ?? Math.random().toString(36).slice(2),
         role: 'assistant',
         content: res.reply,
         expense: res.expense,

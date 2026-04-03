@@ -34,7 +34,9 @@ export default function SettingsPage() {
 
   const copyInviteCode = () => {
     if (space) {
-      navigator.clipboard.writeText(space.invite_code);
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(space.invite_code);
+      }
       Toast.show({ content: '邀请码已复制' });
     }
   };

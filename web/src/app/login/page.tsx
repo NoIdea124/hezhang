@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Input, Toast } from 'antd-mobile';
 import { useAuthStore } from '@/stores/authStore';
 import { apiFetch } from '@/lib/api';
 import type { User, Space } from '@hezhang/shared';
@@ -15,27 +14,31 @@ export default function LoginPage() {
   const [code, setCode] = useState('');
   const [codeSent, setCodeSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const cleanPhone = phone.replace(/\D/g, '');
 
   const handleSendCode = async () => {
-    if (phone.length < 11) {
-      Toast.show({ content: '请输入正确的手机号' });
+    setError('');
+    if (cleanPhone.length !== 11) {
+      setError('请输入11位手机号');
       return;
     }
     try {
       await apiFetch('/auth/send-code', {
         method: 'POST',
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ phone: cleanPhone }),
       });
       setCodeSent(true);
-      Toast.show({ content: '验证码已发送 (MVP: 123456)' });
     } catch (e: any) {
-      Toast.show({ content: e.message });
+      setError(e.message || '发送失败');
     }
   };
 
   const handleLogin = async () => {
+    setError('');
     if (!code) {
-      Toast.show({ content: '请输入验证码' });
+      setError('请输入验证码');
       return;
     }
     setLoading(true);
@@ -44,7 +47,7 @@ export default function LoginPage() {
         '/auth/login',
         {
           method: 'POST',
-          body: JSON.stringify({ phone, code }),
+          body: JSON.stringify({ phone: cleanPhone, code }),
         }
       );
       setAuth(res.token, res.user);
@@ -55,10 +58,36 @@ export default function LoginPage() {
         router.replace('/onboarding');
       }
     } catch (e: any) {
-      Toast.show({ content: e.message });
+      setError(e.message || '登录失败');
     } finally {
       setLoading(false);
     }
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    fontSize: 16,
+    padding: '12px',
+    border: '1px solid var(--border)',
+    borderRadius: 8,
+    backgroundColor: 'var(--card-bg)',
+    outline: 'none',
+    boxSizing: 'border-box',
+    WebkitAppearance: 'none',
+  };
+
+  const buttonStyle: React.CSSProperties = {
+    width: '100%',
+    height: 48,
+    fontSize: 16,
+    fontWeight: 600,
+    color: '#fff',
+    backgroundColor: '#4F46E5',
+    border: 'none',
+    borderRadius: 8,
+    cursor: 'pointer',
+    WebkitAppearance: 'none',
+    touchAction: 'manipulation',
   };
 
   return (
@@ -82,71 +111,64 @@ export default function LoginPage() {
           <label style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>
             手机号
           </label>
-          <Input
+          <input
             placeholder="请输入手机号"
             type="tel"
+            inputMode="numeric"
             maxLength={11}
             value={phone}
-            onChange={setPhone}
-            style={{
-              '--font-size': '16px',
-              padding: '12px',
-              border: '1px solid var(--border)',
-              borderRadius: 8,
-              backgroundColor: 'var(--card-bg)',
-            } as React.CSSProperties}
+            onChange={(e) => setPhone(e.target.value)}
+            style={inputStyle}
           />
         </div>
 
+        {error && (
+          <div style={{ color: '#EF4444', fontSize: 13, marginBottom: 12, textAlign: 'center' }}>
+            {error}
+          </div>
+        )}
+
         {!codeSent ? (
-          <Button
-            block
-            color="primary"
-            size="large"
+          <button
+            type="button"
             onClick={handleSendCode}
-            style={{ borderRadius: 8, height: 48 }}
+            style={buttonStyle}
           >
             发送验证码
-          </Button>
+          </button>
         ) : (
           <>
             <div style={{ marginBottom: 16 }}>
               <label style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>
                 验证码
               </label>
-              <Input
+              <input
                 placeholder="请输入验证码"
-                type="number"
+                type="text"
+                inputMode="numeric"
                 maxLength={6}
                 value={code}
-                onChange={setCode}
-                style={{
-                  '--font-size': '16px',
-                  padding: '12px',
-                  border: '1px solid var(--border)',
-                  borderRadius: 8,
-                  backgroundColor: 'var(--card-bg)',
-                } as React.CSSProperties}
+                onChange={(e) => setCode(e.target.value)}
+                style={inputStyle}
               />
             </div>
-            <Button
-              block
-              color="primary"
-              size="large"
-              loading={loading}
+            <button
+              type="button"
               onClick={handleLogin}
-              style={{ borderRadius: 8, height: 48 }}
-            >
-              登录
-            </Button>
-            <p
+              disabled={loading}
               style={{
-                textAlign: 'center',
-                marginTop: 12,
-                fontSize: 13,
-                color: 'var(--text-secondary)',
+                ...buttonStyle,
+                opacity: loading ? 0.6 : 1,
               }}
             >
+              {loading ? '登录中...' : '登录'}
+            </button>
+            <p style={{
+              textAlign: 'center',
+              marginTop: 12,
+              fontSize: 13,
+              color: 'var(--text-secondary)',
+            }}>
               MVP 模式验证码: 123456
             </p>
           </>

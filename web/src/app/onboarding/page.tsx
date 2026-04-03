@@ -58,7 +58,9 @@ export default function OnboardingPage() {
 
   const copyInviteCode = () => {
     if (createdSpace) {
-      navigator.clipboard.writeText(createdSpace.invite_code);
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(createdSpace.invite_code);
+      }
       Toast.show({ content: '邀请码已复制' });
     }
   };

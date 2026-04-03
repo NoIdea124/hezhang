@@ -3,7 +3,15 @@
 import { useEffect, useRef, useCallback } from 'react';
 import type { WsEvent } from '@hezhang/shared';
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001/ws';
+function getWsUrl(): string {
+  const env = process.env.NEXT_PUBLIC_WS_URL;
+  // 如果是完整地址（ws:// 或 wss://）直接用
+  if (env && (env.startsWith('ws://') || env.startsWith('wss://'))) return env;
+  // 运行时根据当前页面地址推导（同 IP，端口 3001）
+  if (typeof window === 'undefined') return 'ws://localhost:3001/ws';
+  const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${proto}//${window.location.hostname}:3001/ws`;
+}
 
 interface UseWebSocketOptions {
   onMessage: (event: WsEvent) => void;
@@ -26,7 +34,7 @@ export function useWebSocket({ onMessage }: UseWebSocketOptions) {
       wsRef.current = null;
     }
 
-    const ws = new WebSocket(`${WS_URL}?token=${token}`);
+    const ws = new WebSocket(`${getWsUrl()}?token=${token}`);
 
     ws.onopen = () => {
       retryCount.current = 0;

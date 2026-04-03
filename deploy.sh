@@ -18,7 +18,8 @@ echo -e "${YELLOW}[1/4] 安装依赖...${NC}"
 npm install
 
 echo -e "${YELLOW}[2/4] 构建 web...${NC}"
-npm run build -w web
+# 清空 NEXT_PUBLIC_* 让运行时动态推导 API 地址
+NEXT_PUBLIC_API_URL= NEXT_PUBLIC_WS_URL= npm run build -w web
 
 echo -e "${YELLOW}[3/4] 整理部署文件...${NC}"
 rm -rf "$DIST_DIR"
@@ -34,9 +35,9 @@ cp server/tsconfig.json "$DIST_DIR/server/"
 cp -r packages "$DIST_DIR/packages"
 
 # ---- Web（Next.js standalone）----
-mkdir -p "$DIST_DIR/web/.next"
-cp -r web/.next/standalone/web/* "$DIST_DIR/web/"
-# standalone 不包含 static 和 public，需手动复制
+# 复制 standalone 输出（含隐藏的 .next 目录）
+cp -r web/.next/standalone/web "$DIST_DIR/web"
+# standalone 不包含 static 和 public，需手动补充
 cp -r web/.next/static "$DIST_DIR/web/.next/static"
 cp -r web/public "$DIST_DIR/web/public"
 
