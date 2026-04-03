@@ -16,10 +16,11 @@ module.exports = {
     {
       name: 'hezhang-web',
       cwd: './web',
-      script: 'node_modules/.bin/next',
-      args: 'start -p 3000',
+      script: 'server.js',  // Next.js standalone 输出
       env: {
         NODE_ENV: 'production',
+        PORT: 3000,
+        HOSTNAME: '0.0.0.0',
       },
       instances: 1,
       autorestart: true,
