@@ -22,7 +22,7 @@ export default function CategoryProgress({ categories, spending }: Props) {
         const spent = spending[cat.name] || 0;
         const ratio = cat.amount > 0 ? spent / cat.amount : 0;
         const percent = Math.round(ratio * 100);
-        const barColor = ratio >= 1 ? '#EF4444' : ratio >= 0.8 ? '#F59E0B' : '#10B981';
+        const barColor = ratio > 1 ? 'var(--danger)' : ratio >= 0.8 ? 'var(--warning)' : 'var(--success)';
 
         return (
           <div key={cat.name}>
@@ -37,14 +37,18 @@ export default function CategoryProgress({ categories, spending }: Props) {
             <div style={{
               height: 8,
               borderRadius: 4,
-              backgroundColor: '#E5E7EB',
+              backgroundColor: 'var(--border)',
               overflow: 'hidden',
             }}>
               <div style={{
                 height: '100%',
                 width: `${Math.min(percent, 100)}%`,
                 borderRadius: 4,
-                backgroundColor: barColor,
+                background: ratio >= 0.8 && ratio <= 1
+                  ? 'var(--gradient-warm)'
+                  : ratio > 1
+                  ? 'var(--danger)'
+                  : 'var(--gradient-fresh)',
                 transition: 'width 0.3s ease',
               }} />
             </div>
@@ -54,7 +58,7 @@ export default function CategoryProgress({ categories, spending }: Props) {
                 color: barColor,
                 marginTop: 2,
               }}>
-                {percent >= 100 ? '已超预算' : `已用 ${percent}%`}
+                {percent > 100 ? '已超预算' : percent === 100 ? '预算已用完' : `已用 ${percent}%`}
               </div>
             )}
           </div>

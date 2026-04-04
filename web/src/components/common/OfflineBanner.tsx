@@ -1,6 +1,7 @@
 'use client';
 
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import { IconWifiOff } from '@/components/ui/icons';
 
 export default function OfflineBanner() {
   const online = useOnlineStatus();
@@ -14,13 +15,18 @@ export default function OfflineBanner() {
       left: 0,
       right: 0,
       zIndex: 9999,
-      backgroundColor: '#F59E0B',
+      background: 'var(--gradient-warm)',
       color: '#fff',
       textAlign: 'center',
       padding: '6px 16px',
       fontSize: 13,
       fontWeight: 500,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
     }}>
+      <IconWifiOff size={14} />
       当前无网络连接
     </div>
   );

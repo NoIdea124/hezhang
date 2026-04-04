@@ -1,7 +1,7 @@
 'use client';
 
-import { Dropdown, type DropdownRef } from 'antd-mobile';
-import { useRef } from 'react';
+import { useState } from 'react';
+import Dropdown from '@/components/ui/Dropdown';
 import { useCategories } from '@/hooks/useCategories';
 import { getCurrentMonth } from '@/lib/format';
 
@@ -18,11 +18,10 @@ export default function FilterBar({
   category, month, ownership,
   onCategoryChange, onMonthChange, onOwnershipChange,
 }: Props) {
-  const dropdownRef = useRef<DropdownRef>(null);
   const { categories } = useCategories();
 
   const currentMonth = getCurrentMonth();
-  const months = [];
+  const months: string[] = [];
   for (let i = 0; i < 6; i++) {
     const d = new Date();
     d.setMonth(d.getMonth() - i);
@@ -47,67 +46,17 @@ export default function FilterBar({
   ];
 
   return (
-    <Dropdown ref={dropdownRef}>
-      <Dropdown.Item key="category" title={category ? `${categories.find(c => c.name === category)?.icon || ''} ${category}` : '分类'}>
-        <div style={{ padding: 8 }}>
-          {categoryOptions.map((opt) => (
-            <div
-              key={opt.value}
-              onClick={() => { onCategoryChange(opt.value); dropdownRef.current?.close(); }}
-              style={{
-                padding: '10px 12px',
-                borderRadius: 6,
-                cursor: 'pointer',
-                backgroundColor: category === opt.value ? '#F0F0FF' : 'transparent',
-                color: category === opt.value ? 'var(--primary)' : 'var(--text)',
-                fontSize: 14,
-              }}
-            >
-              {opt.label}
-            </div>
-          ))}
-        </div>
-      </Dropdown.Item>
-      <Dropdown.Item key="month" title={month === currentMonth ? '本月' : month.split('-')[1] + '月'}>
-        <div style={{ padding: 8 }}>
-          {monthOptions.map((opt) => (
-            <div
-              key={opt.value}
-              onClick={() => { onMonthChange(opt.value); dropdownRef.current?.close(); }}
-              style={{
-                padding: '10px 12px',
-                borderRadius: 6,
-                cursor: 'pointer',
-                backgroundColor: month === opt.value ? '#F0F0FF' : 'transparent',
-                color: month === opt.value ? 'var(--primary)' : 'var(--text)',
-                fontSize: 14,
-              }}
-            >
-              {opt.label}
-            </div>
-          ))}
-        </div>
-      </Dropdown.Item>
-      <Dropdown.Item key="ownership" title={ownershipOptions.find(o => o.value === ownership)?.label || '归属'}>
-        <div style={{ padding: 8 }}>
-          {ownershipOptions.map((opt) => (
-            <div
-              key={opt.value}
-              onClick={() => { onOwnershipChange(opt.value); dropdownRef.current?.close(); }}
-              style={{
-                padding: '10px 12px',
-                borderRadius: 6,
-                cursor: 'pointer',
-                backgroundColor: ownership === opt.value ? '#F0F0FF' : 'transparent',
-                color: ownership === opt.value ? 'var(--primary)' : 'var(--text)',
-                fontSize: 14,
-              }}
-            >
-              {opt.label}
-            </div>
-          ))}
-        </div>
-      </Dropdown.Item>
-    </Dropdown>
+    <div style={{
+      display: 'flex',
+      gap: 8,
+      padding: '8px 16px',
+      overflowX: 'auto',
+    }}
+    className="no-scrollbar"
+    >
+      <Dropdown options={categoryOptions} value={category} onChange={onCategoryChange} placeholder="分类" />
+      <Dropdown options={monthOptions} value={month} onChange={onMonthChange} placeholder="月份" />
+      <Dropdown options={ownershipOptions} value={ownership} onChange={onOwnershipChange} placeholder="归属" />
+    </div>
   );
 }

@@ -1,17 +1,104 @@
+/* ============================================================
+   合账 — 清新多巴胺设计系统
+   ============================================================ */
+
 :root {
-  --primary: #4F46E5;
-  --primary-light: #818CF8;
-  --bg: #F9FAFB;
+  /* ── Primary ── */
+  --primary: #FF6B6B;
+  --primary-light: #FF8E8E;
+  --primary-dark: #E85D5D;
+
+  /* ── Accent Palette ── */
+  --accent-peach: #FFAB91;
+  --accent-lavender: #B39DDB;
+  --accent-mint: #80CBC4;
+  --accent-sky: #81D4FA;
+  --accent-gold: #FFD180;
+  --accent-rose: #F48FB1;
+
+  /* ── Gradients ── */
+  --gradient-primary: linear-gradient(135deg, #FF6B6B, #FFAB91);
+  --gradient-warm: linear-gradient(135deg, #FF8A80, #FFD180);
+  --gradient-dream: linear-gradient(135deg, #B39DDB, #81D4FA);
+  --gradient-fresh: linear-gradient(135deg, #80CBC4, #A5D6A7);
+  --gradient-rose: linear-gradient(135deg, #F48FB1, #CE93D8);
+
+  /* ── Surface & Background ── */
+  --bg: #FFF8F6;
+  --bg-secondary: #FFF0EC;
   --card-bg: #FFFFFF;
-  --text: #111827;
-  --text-secondary: #6B7280;
-  --border: #E5E7EB;
-  --success: #10B981;
-  --warning: #F59E0B;
-  --danger: #EF4444;
+  --card-bg-hover: #FFFAF9;
+
+  /* ── Text ── */
+  --text: #2D2D3A;
+  --text-secondary: #8E8E9E;
+  --text-tertiary: #B5B5C3;
+  --text-inverse: #FFFFFF;
+
+  /* ── Border ── */
+  --border: #F0E8E5;
+  --border-light: #F8F0ED;
+
+  /* ── Status ── */
+  --success: #66BB6A;
+  --success-bg: #E8F5E9;
+  --warning: #FFA726;
+  --warning-bg: #FFF3E0;
+  --danger: #EF5350;
+  --danger-bg: #FFEBEE;
+
+  /* ── Shadows ── */
+  --shadow-sm: 0 1px 3px rgba(255, 107, 107, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(255, 107, 107, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 24px rgba(255, 107, 107, 0.10), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 16px 40px rgba(255, 107, 107, 0.12), 0 8px 16px rgba(0, 0, 0, 0.04);
+
+  /* ── Radius ── */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
+  /* ── Spacing ── */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* ── Typography ── */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-size-xs: 11px;
+  --font-size-sm: 13px;
+  --font-size-base: 15px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 22px;
+  --font-size-2xl: 28px;
+  --line-height: 1.6;
+
+  /* ── Z-Index ── */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-overlay: 500;
+  --z-modal: 1000;
+  --z-toast: 2000;
+
+  /* ── Transition ── */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
 }
 
-* {
+/* ============================================================
+   Reset & Base
+   ============================================================ */
+
+*, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -19,16 +106,239 @@
 
 html, body {
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height);
   background-color: var(--bg);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
-  /* Prevent pull-to-refresh on PWA */
   overscroll-behavior-y: contain;
+  -webkit-text-size-adjust: 100%;
 }
 
-/* Safe area padding for iOS */
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+button, input, textarea, select {
+  font: inherit;
+  color: inherit;
+}
+
+img, svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* ============================================================
+   Animations — Keyframes
+   ============================================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(0); }
+  to   { transform: translateY(100%); }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0); }
+  to   { transform: scale(1); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.3); }
+  50%      { transform: scale(1.04); box-shadow: 0 0 0 8px rgba(255, 107, 107, 0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes overlayFadeIn {
+  from { background-color: rgba(0, 0, 0, 0); }
+  to   { background-color: rgba(0, 0, 0, 0.4); }
+}
+
+@keyframes overlayFadeOut {
+  from { background-color: rgba(0, 0, 0, 0.4); }
+  to   { background-color: rgba(0, 0, 0, 0); }
+}
+
+@keyframes toastEnter {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes toastExit {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+}
+
+/* ============================================================
+   Utility Classes
+   ============================================================ */
+
+/* Safe area */
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+/* Skeleton loading */
+.skeleton {
+  background: linear-gradient(90deg, #F0E8E5 25%, #F8F0ED 50%, #F0E8E5 75%);
+  background-size: 400% 100%;
+  animation: shimmer 1.5s ease infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass effect */
+.glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+/* Truncate */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Hide scrollbar */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Press feedback */
+.pressable {
+  transition: transform var(--duration-fast) var(--ease-spring);
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.pressable:active {
+  transform: scale(0.96);
+}
+
+/* ============================================================
+   Global Toast Styles (injected by lib/toast.ts)
+   ============================================================ */
+
+#app-toast {
+  animation: toastEnter var(--duration-normal) var(--ease-spring);
+}
+
+#app-toast.toast-exit {
+  animation: toastExit var(--duration-fast) var(--ease-smooth) forwards;
+}
+
+/* ============================================================
+   Scrollbar (desktop)
+   ============================================================ */
+
+@media (hover: hover) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-tertiary);
+  }
 }

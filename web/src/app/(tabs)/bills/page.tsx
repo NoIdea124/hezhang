@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { FloatingBubble, Toast, Dialog } from 'antd-mobile';
-import { AddOutline } from 'antd-mobile-icons';
+import Dialog from '@/components/ui/Dialog';
+import FloatingButton from '@/components/ui/FloatingButton';
+import { showToast } from '@/lib/toast';
+import { IconPlus } from '@/components/ui/icons';
 import FilterBar from '@/components/bills/FilterBar';
 import ExpenseList from '@/components/bills/ExpenseList';
 import { apiFetch } from '@/lib/api';
@@ -17,6 +19,7 @@ export default function BillsPage() {
   const [category, setCategory] = useState('');
   const [month, setMonth] = useState(getCurrentMonth());
   const [ownership, setOwnership] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   const loadExpenses = useCallback(async () => {
     setLoading(true);
@@ -29,7 +32,7 @@ export default function BillsPage() {
       const res = await apiFetch<{ expenses: Expense[] }>(`/expenses?${params}`);
       setExpenses(res.expenses);
     } catch (e: any) {
-      Toast.show({ content: e.message });
+      showToast(e.message);
     } finally {
       setLoading(false);
     }
@@ -39,7 +42,6 @@ export default function BillsPage() {
     loadExpenses();
   }, [loadExpenses]);
 
-  // Listen for WebSocket sync events
   useEffect(() => {
     const handler = (e: Event) => {
       const event = (e as CustomEvent).detail;
@@ -51,19 +53,16 @@ export default function BillsPage() {
     return () => window.removeEventListener('ws-sync', handler);
   }, [loadExpenses]);
 
-  const handleDelete = async (id: string) => {
-    Dialog.confirm({
-      content: '确定删除这笔记录？',
-      onConfirm: async () => {
-        try {
-          await apiFetch(`/expenses/${id}`, { method: 'DELETE' });
-          setExpenses((prev) => prev.filter((e) => e.id !== id));
-          Toast.show({ content: '已删除' });
-        } catch (e: any) {
-          Toast.show({ content: e.message });
-        }
-      },
-    });
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm) return;
+    try {
+      await apiFetch(`/expenses/${deleteConfirm}`, { method: 'DELETE' });
+      setExpenses((prev) => prev.filter((e) => e.id !== deleteConfirm));
+      showToast({ message: '已删除', type: 'success' });
+    } catch (e: any) {
+      showToast({ message: e.message, type: 'error' });
+    }
+    setDeleteConfirm(null);
   };
 
   const total = expenses.reduce((sum, e) => sum + e.amount, 0);
@@ -73,7 +72,7 @@ export default function BillsPage() {
       <div style={{ padding: '44px 16px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
         <h2 style={{ fontSize: 20, fontWeight: 600 }}>消费明细</h2>
         <span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-          合计 {formatCurrency(total)}
+          合计 <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{formatCurrency(total)}</span>
         </span>
       </div>
 
@@ -87,25 +86,30 @@ export default function BillsPage() {
       />
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>
-          加载中...
+        <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="skeleton" style={{ height: 60, borderRadius: 'var(--radius-sm)' }} />
+          ))}
         </div>
       ) : (
-        <ExpenseList expenses={expenses} onDelete={handleDelete} />
+        <ExpenseList expenses={expenses} onDelete={(id) => setDeleteConfirm(id)} />
       )}
 
-      <FloatingBubble
-        style={{
-          '--initial-position-bottom': '76px',
-          '--initial-position-right': '16px',
-          '--size': '48px',
-          '--background': 'var(--primary)',
-          '--edge-distance': '16px',
-        } as React.CSSProperties}
+      <FloatingButton
         onClick={() => router.push('/expense/new')}
-      >
-        <AddOutline fontSize={24} color="#fff" />
-      </FloatingBubble>
+        icon={<IconPlus size={24} color="#fff" />}
+      />
+
+      <Dialog
+        visible={!!deleteConfirm}
+        title="删除记录"
+        content="确定删除这笔记录？"
+        actions={[
+          { text: '取消', onClick: () => setDeleteConfirm(null) },
+          { text: '删除', danger: true, bold: true, onClick: handleDeleteConfirm },
+        ]}
+        onClose={() => setDeleteConfirm(null)}
+      />
     </div>
   );
 }

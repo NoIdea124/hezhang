@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Toast } from 'antd-mobile';
+import { showToast } from '@/lib/toast';
 import { useAuthStore } from '@/stores/authStore';
 import { apiFetch } from '@/lib/api';
 import { formatCurrency, getCurrentMonth } from '@/lib/format';
@@ -23,7 +23,6 @@ export default function ChatPage() {
     loadTodayData();
   }, []);
 
-  // Listen for WebSocket sync events
   useEffect(() => {
     const handler = (e: Event) => {
       const event = (e as CustomEvent).detail;
@@ -48,7 +47,6 @@ export default function ChatPage() {
   };
 
   const handleSend = useCallback(async (message: string) => {
-    // Add user message
     const userMsg: ChatMessage = {
       id: crypto.randomUUID?.() ?? Math.random().toString(36).slice(2),
       role: 'user',
@@ -73,12 +71,11 @@ export default function ChatPage() {
       };
       setMessages((prev) => [...prev, aiMsg]);
 
-      // Refresh data if expense was recorded/modified/deleted
       if (['record', 'delete', 'modify'].includes(res.intent)) {
         loadTodayData();
       }
     } catch (e: any) {
-      Toast.show({ content: e.message || '发送失败' });
+      showToast(e.message || '发送失败');
     } finally {
       setSending(false);
     }
@@ -91,23 +88,35 @@ export default function ChatPage() {
       display: 'flex',
       flexDirection: 'column',
       minHeight: '100vh',
-      paddingBottom: 100,
+      paddingBottom: 110,
     }}>
       {/* Header */}
-      <div style={{ textAlign: 'center', padding: '56px 16px 12px' }}>
-        <div style={{ fontSize: 18, fontWeight: 600 }}>
-          🤝 {space?.name || '合账'}
+      <div style={{
+        textAlign: 'center',
+        padding: '56px 16px 12px',
+      }}>
+        <div style={{
+          fontSize: 18,
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 6,
+        }}>
+          <span>🤝</span>
+          <span className="gradient-text">{space?.name || '合账'}</span>
         </div>
       </div>
 
       {/* Month Budget Card */}
       <div style={{ padding: '0 16px' }}>
         <div style={{
-          background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%)',
-          borderRadius: 12,
+          background: 'var(--gradient-primary)',
+          borderRadius: 'var(--radius-lg)',
           padding: 16,
           color: '#fff',
           marginBottom: 12,
+          boxShadow: '0 4px 16px rgba(255,107,107,0.2)',
         }}>
           <div style={{ fontSize: 13, opacity: 0.9 }}>
             {getCurrentMonth().replace('-', '年')}月支出
@@ -123,9 +132,9 @@ export default function ChatPage() {
         <div style={{ padding: '0 16px', marginBottom: 12 }}>
           <div style={{
             background: 'var(--card-bg)',
-            borderRadius: 12,
+            borderRadius: 'var(--radius-lg)',
             padding: 14,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: 'var(--shadow-sm)',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
               <span style={{ fontSize: 14, fontWeight: 600 }}>今日消费</span>
@@ -155,14 +164,14 @@ export default function ChatPage() {
       {/* Chat Messages */}
       <ChatMessageList messages={messages} />
 
-      {/* Welcome hint when no messages */}
+      {/* Welcome hint */}
       {messages.length === 0 && (
-        <div style={{ padding: '0 16px', marginTop: 8 }}>
+        <div style={{ padding: '0 16px', marginTop: 8, animation: 'fadeInUp 400ms var(--ease-spring)' }}>
           <div style={{
             background: 'var(--card-bg)',
-            borderRadius: 12,
+            borderRadius: 'var(--radius-lg)',
             padding: 16,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: 'var(--shadow-sm)',
           }}>
             <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 8 }}>
               在下方输入框输入消费，AI 自动记账：
@@ -177,6 +186,7 @@ export default function ChatPage() {
                 <span
                   key={hint}
                   onClick={() => handleSend(hint.replace(/"/g, ''))}
+                  className="pressable"
                   style={{
                     fontSize: 14,
                     color: 'var(--primary)',

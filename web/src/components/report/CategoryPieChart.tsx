@@ -5,7 +5,7 @@ import { getCategoryIcon } from '@hezhang/shared';
 
 const ReactECharts = dynamic(() => import('echarts-for-react'), { ssr: false });
 
-const COLORS = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316', '#14B8A6', '#6366F1', '#A3A3A3'];
+const COLORS = ['#FF6B6B', '#80CBC4', '#FFD180', '#B39DDB', '#81D4FA', '#F48FB1', '#FFAB91', '#A5D6A7', '#CE93D8', '#90CAF9', '#BCAAA4'];
 
 interface Props {
   categoryTotals: Record<string, number>;

@@ -1,11 +1,16 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { Button, List, Toast, Dialog, Input, SwipeAction } from 'antd-mobile';
+import { useEffect, useState } from 'react';
+import Button from '@/components/ui/Button';
+import Dialog from '@/components/ui/Dialog';
+import { ListGroup, ListItem } from '@/components/ui/ListGroup';
+import SwipeAction from '@/components/ui/SwipeAction';
+import { showToast } from '@/lib/toast';
 import { useAuthStore } from '@/stores/authStore';
 import { useCategories } from '@/hooks/useCategories';
 import { apiFetch } from '@/lib/api';
 import PWAInstallBanner from '@/components/common/PWAInstallBanner';
+import { IconLogout, IconPlus } from '@/components/ui/icons';
 import type { Space, SpaceMember, User, CustomCategory } from '@hezhang/shared';
 
 export default function SettingsPage() {
@@ -37,7 +42,7 @@ export default function SettingsPage() {
       if (navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(space.invite_code);
       }
-      Toast.show({ content: '邀请码已复制' });
+      showToast({ message: '邀请码已复制', type: 'success' });
     }
   };
 
@@ -55,143 +60,110 @@ export default function SettingsPage() {
     }
   };
 
-  const nicknameRef = useRef(user?.nickname || '');
-  const spaceNameRef = useRef(space?.name || '');
-
-  const handleEditNickname = () => {
-    nicknameRef.current = user?.nickname || '';
-    Dialog.confirm({
+  const handleEditNickname = async () => {
+    const val = await Dialog.prompt({
       title: '修改昵称',
-      content: (
-        <Input
-          placeholder="请输入昵称"
-          defaultValue={user?.nickname || ''}
-          maxLength={20}
-          onChange={(val) => { nicknameRef.current = val; }}
-          style={{ '--font-size': '16px' }}
-        />
-      ),
-      onConfirm: async () => {
-        const val = nicknameRef.current.trim();
-        if (!val) {
-          Toast.show({ content: '昵称不能为空' });
-          return;
-        }
-        try {
-          const res = await apiFetch<{ user: User }>('/auth/me', {
-            method: 'PUT',
-            body: JSON.stringify({ nickname: val }),
-          });
-          updateUser({ nickname: res.user.nickname });
-          Toast.show({ content: '昵称已更新' });
-        } catch (e: any) {
-          Toast.show({ content: e.message || '更新失败' });
-        }
-      },
+      placeholder: '请输入昵称',
+      defaultValue: user?.nickname || '',
     });
+    if (val === null) return;
+    const trimmed = val.trim();
+    if (!trimmed) {
+      showToast('昵称不能为空');
+      return;
+    }
+    try {
+      const res = await apiFetch<{ user: User }>('/auth/me', {
+        method: 'PUT',
+        body: JSON.stringify({ nickname: trimmed }),
+      });
+      updateUser({ nickname: res.user.nickname });
+      showToast({ message: '昵称已更新', type: 'success' });
+    } catch (e: any) {
+      showToast({ message: e.message || '更新失败', type: 'error' });
+    }
   };
 
   const isOwner = members.find((m) => m.user_id === user?.id)?.role === 'owner';
 
-  const handleEditSpaceName = () => {
+  const handleEditSpaceName = async () => {
     if (!isOwner) {
-      Toast.show({ content: '只有创建者可以修改空间名称' });
+      showToast('只有创建者可以修改空间名称');
       return;
     }
-    spaceNameRef.current = space?.name || '';
-    Dialog.confirm({
+    const val = await Dialog.prompt({
       title: '修改空间名称',
-      content: (
-        <Input
-          placeholder="请输入空间名称"
-          defaultValue={space?.name || ''}
-          maxLength={20}
-          onChange={(val) => { spaceNameRef.current = val; }}
-          style={{ '--font-size': '16px' }}
-        />
-      ),
-      onConfirm: async () => {
-        const val = spaceNameRef.current.trim();
-        if (!val) {
-          Toast.show({ content: '空间名称不能为空' });
-          return;
-        }
-        try {
-          const res = await apiFetch<{ space: Space }>('/spaces/current', {
-            method: 'PUT',
-            body: JSON.stringify({ name: val }),
-          });
-          setSpace(res.space);
-          Toast.show({ content: '空间名称已更新' });
-        } catch (e: any) {
-          Toast.show({ content: e.message || '更新失败' });
-        }
-      },
+      placeholder: '请输入空间名称',
+      defaultValue: space?.name || '',
     });
+    if (val === null) return;
+    const trimmed = val.trim();
+    if (!trimmed) {
+      showToast('空间名称不能为空');
+      return;
+    }
+    try {
+      const res = await apiFetch<{ space: Space }>('/spaces/current', {
+        method: 'PUT',
+        body: JSON.stringify({ name: trimmed }),
+      });
+      setSpace(res.space);
+      showToast({ message: '空间名称已更新', type: 'success' });
+    } catch (e: any) {
+      showToast({ message: e.message || '更新失败', type: 'error' });
+    }
   };
 
-  const catNameRef = useRef('');
-  const catIconRef = useRef('');
-
-  const handleAddCategory = () => {
-    catNameRef.current = '';
-    catIconRef.current = '';
-    Dialog.confirm({
+  const handleAddCategory = async () => {
+    const name = await Dialog.prompt({
       title: '添加自定义分类',
-      content: (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <Input
-            placeholder="分类名称（最多8字）"
-            maxLength={8}
-            onChange={(val) => { catNameRef.current = val; }}
-            style={{ '--font-size': '16px' }}
-          />
-          <Input
-            placeholder="输入一个emoji图标，如 🎵"
-            maxLength={4}
-            onChange={(val) => { catIconRef.current = val; }}
-            style={{ '--font-size': '16px' }}
-          />
-        </div>
-      ),
-      onConfirm: async () => {
-        const name = catNameRef.current.trim();
-        if (!name) {
-          Toast.show({ content: '请输入分类名称' });
-          return;
-        }
-        try {
-          await apiFetch<{ category: CustomCategory }>('/categories', {
-            method: 'POST',
-            body: JSON.stringify({ name, icon: catIconRef.current.trim() || '📦' }),
-          });
-          refetchCategories();
-          Toast.show({ content: '分类已添加' });
-        } catch (e: any) {
-          Toast.show({ content: e.message || '添加失败' });
-        }
-      },
+      placeholder: '请输入分类名称（最多8字）',
     });
+    if (name === null) return;
+    const trimmed = name.trim();
+    if (!trimmed) {
+      showToast('请输入分类名称');
+      return;
+    }
+    const icon = await Dialog.prompt({
+      title: '选择图标',
+      placeholder: '输入一个emoji图标',
+      defaultValue: '📦',
+    });
+    const finalIcon = icon?.trim() || '📦';
+    try {
+      await apiFetch<{ category: CustomCategory }>('/categories', {
+        method: 'POST',
+        body: JSON.stringify({ name: trimmed, icon: finalIcon }),
+      });
+      refetchCategories();
+      showToast({ message: '分类已添加', type: 'success' });
+    } catch (e: any) {
+      showToast({ message: e.message || '添加失败', type: 'error' });
+    }
   };
 
   const handleDeleteCategory = async (id: string) => {
     try {
       await apiFetch(`/categories/${id}`, { method: 'DELETE' });
       refetchCategories();
-      Toast.show({ content: '已删除' });
+      showToast({ message: '已删除', type: 'success' });
     } catch (e: any) {
-      Toast.show({ content: e.message || '删除失败' });
+      showToast({ message: e.message || '删除失败', type: 'error' });
     }
   };
 
-  const handleLogout = () => {
-    Dialog.confirm({
+  const handleLogout = async () => {
+    const confirmed = await Dialog.confirm({
+      title: '退出登录',
       content: '确定要退出登录吗？',
-      onConfirm: () => {
-        logout();
-        window.location.href = '/login';
-      },
+      confirmText: '退出',
+      danger: true,
     });
+    if (confirmed) {
+      logout();
+      window.location.href = '/login';
+    }
   };
 
   return (
@@ -201,52 +173,53 @@ export default function SettingsPage() {
       <PWAInstallBanner />
 
       {/* Profile */}
-      <List header="个人信息" style={{ '--border-top': 'none' } as React.CSSProperties}>
-        <List.Item extra={user?.nickname || '未设置'} onClick={handleEditNickname}>
+      <ListGroup header="个人信息">
+        <ListItem extra={user?.nickname || '未设置'} onClick={handleEditNickname}>
           昵称
-        </List.Item>
-        <List.Item extra={user?.phone}>
+        </ListItem>
+        <ListItem extra={user?.phone} arrow={false}>
           手机号
-        </List.Item>
-      </List>
+        </ListItem>
+      </ListGroup>
 
       {/* Space */}
-      <List header="共同空间" style={{ marginTop: 12 }}>
-        <List.Item extra={space?.name} onClick={handleEditSpaceName} clickable={isOwner}>
+      <ListGroup header="共同空间">
+        <ListItem extra={space?.name} onClick={handleEditSpaceName} clickable={isOwner}>
           空间名称
-        </List.Item>
-        <List.Item
+        </ListItem>
+        <ListItem
           extra={space?.invite_code}
           onClick={shareInviteCode}
           description="点击分享给伴侣"
         >
           邀请码
-        </List.Item>
-      </List>
+        </ListItem>
+      </ListGroup>
 
       {/* Members */}
-      <List header="成员" style={{ marginTop: 12 }}>
+      <ListGroup header="成员">
         {members.map((m) => (
-          <List.Item
+          <ListItem
             key={m.user_id}
             extra={m.role === 'owner' ? '创建者' : '成员'}
             description={m.user_id === user?.id ? '我' : '伴侣'}
+            arrow={false}
           >
             {m.nickname}
-          </List.Item>
+          </ListItem>
         ))}
         {members.length < 2 && (
-          <List.Item
+          <ListItem
             onClick={shareInviteCode}
             style={{ color: 'var(--text-secondary)' }}
           >
             伴侣还未加入，点击分享邀请码
-          </List.Item>
+          </ListItem>
         )}
-      </List>
+      </ListGroup>
 
       {/* Custom Categories */}
-      <List header="自定义分类" style={{ marginTop: 12 }}>
+      <ListGroup header="自定义分类">
         {custom.map((c) => (
           <SwipeAction
             key={c.id}
@@ -257,27 +230,28 @@ export default function SettingsPage() {
               onClick: () => handleDeleteCategory(c.id),
             }]}
           >
-            <List.Item extra={c.icon}>
+            <ListItem extra={c.icon} arrow={false}>
               {c.name}
-            </List.Item>
+            </ListItem>
           </SwipeAction>
         ))}
-        <List.Item
+        <ListItem
           onClick={handleAddCategory}
           style={{ color: 'var(--primary)' }}
+          arrow={false}
+          prefix={<IconPlus size={16} color="var(--primary)" />}
         >
-          + 添加分类
-        </List.Item>
-      </List>
+          添加分类
+        </ListItem>
+      </ListGroup>
 
       {/* Actions */}
-      <div style={{ padding: 16, marginTop: 24 }}>
+      <div style={{ padding: '24px 16px' }}>
         <Button
           block
-          color="danger"
-          fill="outline"
+          variant="danger"
           onClick={handleLogout}
-          style={{ borderRadius: 8 }}
+          icon={<IconLogout size={16} />}
         >
           退出登录
         </Button>

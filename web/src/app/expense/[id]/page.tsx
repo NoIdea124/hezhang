@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { NavBar, Toast, Button, Dialog } from 'antd-mobile';
+import NavBar from '@/components/ui/NavBar';
+import Button from '@/components/ui/Button';
+import Dialog from '@/components/ui/Dialog';
+import { showToast } from '@/lib/toast';
 import ExpenseForm from '@/components/expense/ExpenseForm';
 import type { ExpenseFormData } from '@/components/expense/ExpenseForm';
 import { apiFetch } from '@/lib/api';
@@ -14,6 +17,7 @@ export default function EditExpensePage() {
   const id = params?.id as string;
   const [expense, setExpense] = useState<Expense | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     loadExpense();
@@ -25,7 +29,7 @@ export default function EditExpensePage() {
       const found = res.expenses.find((e) => e.id === id);
       if (found) setExpense(found);
     } catch {
-      Toast.show({ content: '加载失败' });
+      showToast({ message: '加载失败', type: 'error' });
     }
   };
 
@@ -36,36 +40,33 @@ export default function EditExpensePage() {
         method: 'PUT',
         body: JSON.stringify(data),
       });
-      Toast.show({ content: '修改成功！' });
+      showToast({ message: '修改成功！', type: 'success' });
       router.back();
     } catch (e: any) {
-      Toast.show({ content: e.message });
+      showToast({ message: e.message, type: 'error' });
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async () => {
-    const confirmed = await Dialog.confirm({
-      content: '确定要删除这笔记录吗？',
-    });
-    if (!confirmed) return;
-
+    setShowDeleteConfirm(false);
     try {
       await apiFetch(`/expenses/${id}`, { method: 'DELETE' });
-      Toast.show({ content: '已删除' });
+      showToast({ message: '已删除', type: 'success' });
       router.back();
     } catch (e: any) {
-      Toast.show({ content: e.message });
+      showToast({ message: e.message, type: 'error' });
     }
   };
 
   if (!expense) {
     return (
       <div style={{ backgroundColor: 'var(--bg)', minHeight: '100vh' }}>
-        <NavBar onBack={() => router.back()}>编辑</NavBar>
+        <NavBar title="编辑" onBack={() => router.back()} />
         <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>
-          加载中...
+          <div className="skeleton" style={{ width: 120, height: 20, margin: '0 auto 8px' }} />
+          <div className="skeleton" style={{ width: 200, height: 40, margin: '0 auto' }} />
         </div>
       </div>
     );
@@ -73,7 +74,7 @@ export default function EditExpensePage() {
 
   return (
     <div style={{ backgroundColor: 'var(--bg)', minHeight: '100vh' }}>
-      <NavBar onBack={() => router.back()}>编辑记录</NavBar>
+      <NavBar title="编辑记录" onBack={() => router.back()} />
       <ExpenseForm
         initialData={{
           amount: expense.amount,
@@ -89,14 +90,23 @@ export default function EditExpensePage() {
       <div style={{ padding: '0 16px' }}>
         <Button
           block
-          color="danger"
-          fill="outline"
-          onClick={handleDelete}
-          style={{ borderRadius: 8 }}
+          variant="danger"
+          onClick={() => setShowDeleteConfirm(true)}
         >
           删除记录
         </Button>
       </div>
+
+      <Dialog
+        visible={showDeleteConfirm}
+        title="删除记录"
+        content="确定要删除这笔记录吗？"
+        actions={[
+          { text: '取消', onClick: () => setShowDeleteConfirm(false) },
+          { text: '删除', danger: true, bold: true, onClick: handleDelete },
+        ]}
+        onClose={() => setShowDeleteConfirm(false)}
+      />
     </div>
   );
 }

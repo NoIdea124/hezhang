@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { NavBar, Toast } from 'antd-mobile';
+import NavBar from '@/components/ui/NavBar';
+import { showToast } from '@/lib/toast';
 import ExpenseForm from '@/components/expense/ExpenseForm';
 import type { ExpenseFormData } from '@/components/expense/ExpenseForm';
 import { apiFetch } from '@/lib/api';
@@ -18,10 +19,10 @@ export default function NewExpensePage() {
         method: 'POST',
         body: JSON.stringify(data),
       });
-      Toast.show({ content: '记录成功！' });
+      showToast({ message: '记录成功！', type: 'success' });
       router.back();
     } catch (e: any) {
-      Toast.show({ content: e.message });
+      showToast({ message: e.message, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -29,7 +30,7 @@ export default function NewExpensePage() {
 
   return (
     <div style={{ backgroundColor: 'var(--bg)', minHeight: '100vh' }}>
-      <NavBar onBack={() => router.back()}>记一笔</NavBar>
+      <NavBar title="记一笔" onBack={() => router.back()} />
       <ExpenseForm onSubmit={handleSubmit} loading={loading} />
     </div>
   );

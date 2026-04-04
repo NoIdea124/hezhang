@@ -1,19 +1,31 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { TabBar } from 'antd-mobile';
-import {
-  MessageOutline,
-  PieOutline,
-  BillOutline,
-  SetOutline,
-} from 'antd-mobile-icons';
+import TabBar from '@/components/ui/TabBar';
+import type { TabItem } from '@/components/ui/TabBar';
+import { IconChat, IconBudget, IconBills, IconSettings } from '@/components/ui/icons';
 
-const tabs = [
-  { key: '/chat', title: '对话', icon: <MessageOutline /> },
-  { key: '/budget', title: '预算', icon: <PieOutline /> },
-  { key: '/bills', title: '账单', icon: <BillOutline /> },
-  { key: '/settings', title: '设置', icon: <SetOutline /> },
+const tabs: TabItem[] = [
+  {
+    key: '/chat',
+    label: '对话',
+    icon: (active) => <IconChat size={22} color={active ? 'var(--primary)' : 'var(--text-tertiary)'} />,
+  },
+  {
+    key: '/budget',
+    label: '预算',
+    icon: (active) => <IconBudget size={22} color={active ? 'var(--primary)' : 'var(--text-tertiary)'} />,
+  },
+  {
+    key: '/bills',
+    label: '账单',
+    icon: (active) => <IconBills size={22} color={active ? 'var(--primary)' : 'var(--text-tertiary)'} />,
+  },
+  {
+    key: '/settings',
+    label: '设置',
+    icon: (active) => <IconSettings size={22} color={active ? 'var(--primary)' : 'var(--text-tertiary)'} />,
+  },
 ];
 
 export default function AppTabBar() {
@@ -23,27 +35,10 @@ export default function AppTabBar() {
   const activeKey = tabs.find((t) => pathname?.startsWith(t.key))?.key || '/chat';
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        borderTop: '1px solid var(--border)',
-        backgroundColor: 'var(--card-bg)',
-        paddingBottom: 'env(safe-area-inset-bottom, 0)',
-        zIndex: 100,
-      }}
-    >
-      <TabBar
-        activeKey={activeKey}
-        onChange={(key) => router.push(key)}
-        style={{ '--adm-color-primary': 'var(--primary)' } as React.CSSProperties}
-      >
-        {tabs.map((tab) => (
-          <TabBar.Item key={tab.key} icon={tab.icon} title={tab.title} />
-        ))}
-      </TabBar>
-    </div>
+    <TabBar
+      items={tabs}
+      activeKey={activeKey}
+      onChange={(key) => router.push(key)}
+    />
   );
 }

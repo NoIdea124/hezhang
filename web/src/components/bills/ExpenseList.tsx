@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { SwipeAction } from 'antd-mobile';
+import SwipeAction from '@/components/ui/SwipeAction';
 import CategoryIcon from '@/components/common/CategoryIcon';
 import { formatCurrency, formatDate } from '@/lib/format';
 import type { Expense } from '@hezhang/shared';
@@ -16,14 +16,18 @@ export default function ExpenseList({ expenses, onDelete }: Props) {
 
   if (expenses.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-secondary)' }}>
+      <div style={{
+        textAlign: 'center',
+        padding: '60px 0',
+        color: 'var(--text-secondary)',
+        animation: 'fadeInUp 300ms var(--ease-spring)',
+      }}>
         <div style={{ fontSize: 40, marginBottom: 8 }}>📭</div>
         <p>暂无消费记录</p>
       </div>
     );
   }
 
-  // Group by date
   const groups: { date: string; items: Expense[]; total: number }[] = [];
   let currentDate = '';
 
@@ -41,7 +45,6 @@ export default function ExpenseList({ expenses, onDelete }: Props) {
     <div>
       {groups.map((group) => (
         <div key={group.date} style={{ marginBottom: 4 }}>
-          {/* Date header */}
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -53,7 +56,6 @@ export default function ExpenseList({ expenses, onDelete }: Props) {
             <span>合计 {formatCurrency(group.total)}</span>
           </div>
 
-          {/* Items */}
           {group.items.map((exp) => (
             <SwipeAction
               key={exp.id}
@@ -66,13 +68,14 @@ export default function ExpenseList({ expenses, onDelete }: Props) {
             >
               <div
                 onClick={() => router.push(`/expense/${exp.id}`)}
+                className="pressable"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   padding: '12px 16px',
                   backgroundColor: 'var(--card-bg)',
                   cursor: 'pointer',
-                  borderBottom: '1px solid var(--border)',
+                  borderBottom: '1px solid var(--border-light)',
                 }}
               >
                 <CategoryIcon name={exp.category} size={28} />

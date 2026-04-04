@@ -22,37 +22,41 @@ export default function ChatMessageList({ messages }: Props) {
 
   return (
     <div style={{ padding: '0 16px' }}>
-      {messages.map((msg) => (
+      {messages.map((msg, i) => (
         <div
           key={msg.id}
           style={{
             display: 'flex',
             justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
             marginBottom: 12,
+            animation: 'fadeInUp 300ms var(--ease-spring)',
+            animationDelay: `${Math.min(i * 50, 200)}ms`,
+            animationFillMode: 'both',
           }}
         >
           <div
             style={{
               maxWidth: '80%',
               padding: '10px 14px',
-              borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-              backgroundColor: msg.role === 'user' ? 'var(--primary)' : 'var(--card-bg)',
+              borderRadius: msg.role === 'user' ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+              background: msg.role === 'user' ? 'var(--gradient-primary)' : 'var(--card-bg)',
               color: msg.role === 'user' ? '#fff' : 'var(--text)',
               fontSize: 14,
               lineHeight: 1.6,
-              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+              boxShadow: msg.role === 'user'
+                ? '0 2px 8px rgba(255,107,107,0.2)'
+                : 'var(--shadow-sm)',
               whiteSpace: 'pre-wrap',
             }}
           >
             {msg.content}
 
-            {/* Expense card in AI reply */}
             {msg.role === 'assistant' && msg.expense && (
               <div style={{
                 marginTop: 8,
                 padding: '8px 10px',
-                backgroundColor: 'rgba(79,70,229,0.06)',
-                borderRadius: 8,
+                backgroundColor: 'rgba(255,107,107,0.06)',
+                borderRadius: 'var(--radius-sm)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 8,

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Input, Toast } from 'antd-mobile';
+import Button from '@/components/ui/Button';
+import { showToast } from '@/lib/toast';
 import { useCategories } from '@/hooks/useCategories';
 import { getCurrentMonth } from '@/lib/format';
 import type { BudgetCreate, BudgetCategory, Budget } from '@hezhang/shared';
@@ -57,31 +58,31 @@ export default function BudgetSetup({ initialData, onSubmit, loading, onClose }:
   const handleSubmit = async () => {
     const total = parseFloat(totalAmount);
     if (!total || total <= 0) {
-      Toast.show({ content: '请输入正确的预算金额' });
+      showToast('请输入正确的预算金额');
       return;
     }
     if (selected.size === 0) {
-      Toast.show({ content: '请至少选择一个分类' });
+      showToast('请至少选择一个分类');
       return;
     }
 
-    const categories: BudgetCategory[] = [];
+    const cats: BudgetCategory[] = [];
     for (const name of selected) {
       const amt = parseFloat(amounts[name] || '0');
-      categories.push({
+      cats.push({
         name,
         amount: amt,
         percentage: total > 0 ? Math.round((amt / total) * 1000) / 10 : 0,
       });
     }
 
-    const allocated = categories.reduce((s, c) => s + c.amount, 0);
+    const allocated = cats.reduce((s, c) => s + c.amount, 0);
     if (Math.abs(allocated - total) > 1) {
-      Toast.show({ content: `已分配 ¥${allocated.toFixed(0)}，与总预算 ¥${total.toFixed(0)} 不一致` });
+      showToast(`已分配 ¥${allocated.toFixed(0)}，与总预算 ¥${total.toFixed(0)} 不一致`);
       return;
     }
 
-    await onSubmit({ month, total_amount: total, categories });
+    await onSubmit({ month, total_amount: total, categories: cats });
   };
 
   const allocated = Array.from(selected).reduce((s, name) => s + (parseFloat(amounts[name] || '0') || 0), 0);
@@ -104,10 +105,10 @@ export default function BudgetSetup({ initialData, onSubmit, loading, onClose }:
       <div style={{ marginBottom: 16 }}>
         <label style={labelStyle}>月份</label>
         <div style={{
-          padding: '10px 12px',
-          border: '1px solid var(--border)',
-          borderRadius: 8,
-          backgroundColor: 'var(--bg)',
+          padding: '12px',
+          border: '1.5px solid var(--border)',
+          borderRadius: 'var(--radius-md)',
+          backgroundColor: 'var(--bg-secondary)',
           fontSize: 15,
           color: 'var(--text-secondary)',
         }}>
@@ -117,27 +118,43 @@ export default function BudgetSetup({ initialData, onSubmit, loading, onClose }:
 
       {/* Total Amount */}
       <div style={{ marginBottom: 20 }}>
-        <label style={labelStyle}>总预算</label>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <label style={{ ...labelStyle, marginBottom: 0 }}>总预算</label>
+          {selected.size > 0 && allocated > 0 && (
+            <span
+              onClick={() => setTotalAmount(allocated.toString())}
+              className="pressable"
+              style={{ fontSize: 12, color: 'var(--primary)', cursor: 'pointer', fontWeight: 500 }}
+            >
+              由分项加和
+            </span>
+          )}
+        </div>
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          border: '1px solid var(--border)',
-          borderRadius: 8,
+          border: '1.5px solid var(--border)',
+          borderRadius: 'var(--radius-md)',
           backgroundColor: 'var(--card-bg)',
-          padding: '8px 12px',
+          padding: '8px 14px',
         }}>
-          <span style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-secondary)', marginRight: 4 }}>¥</span>
-          <Input
+          <span style={{ fontSize: 24, fontWeight: 600, color: 'var(--primary)', marginRight: 4 }}>¥</span>
+          <input
             placeholder="0"
             type="number"
             inputMode="decimal"
             value={totalAmount}
-            onChange={setTotalAmount}
+            onChange={(e) => setTotalAmount(e.target.value)}
             style={{
-              '--font-size': '28px',
-              '--text-align': 'left',
               flex: 1,
-            } as React.CSSProperties}
+              border: 'none',
+              outline: 'none',
+              background: 'transparent',
+              fontSize: 28,
+              fontWeight: 600,
+              color: 'var(--text)',
+              WebkitAppearance: 'none',
+            }}
           />
         </div>
       </div>
@@ -148,7 +165,8 @@ export default function BudgetSetup({ initialData, onSubmit, loading, onClose }:
           <label style={{ ...labelStyle, marginBottom: 0 }}>选择分类</label>
           <span
             onClick={splitEvenly}
-            style={{ fontSize: 12, color: 'var(--primary)', cursor: 'pointer' }}
+            className="pressable"
+            style={{ fontSize: 12, color: 'var(--primary)', cursor: 'pointer', fontWeight: 500 }}
           >
             均分
           </span>
@@ -162,16 +180,18 @@ export default function BudgetSetup({ initialData, onSubmit, loading, onClose }:
             <div
               key={cat.name}
               onClick={() => toggleCategory(cat.name)}
+              className="pressable"
               style={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 padding: '8px 4px',
-                borderRadius: 8,
+                borderRadius: 'var(--radius-sm)',
                 cursor: 'pointer',
-                backgroundColor: selected.has(cat.name) ? 'var(--primary)' : 'var(--card-bg)',
+                background: selected.has(cat.name) ? 'var(--gradient-primary)' : 'var(--card-bg)',
                 color: selected.has(cat.name) ? '#fff' : 'var(--text)',
-                border: `1px solid ${selected.has(cat.name) ? 'var(--primary)' : 'var(--border)'}`,
+                border: `1.5px solid ${selected.has(cat.name) ? 'transparent' : 'var(--border)'}`,
+                boxShadow: selected.has(cat.name) ? '0 2px 8px rgba(255,107,107,0.2)' : 'none',
                 transition: 'all 0.15s',
               }}
             >
@@ -197,20 +217,28 @@ export default function BudgetSetup({ initialData, onSubmit, loading, onClose }:
                   alignItems: 'center',
                   gap: 8,
                   padding: '8px 12px',
-                  border: '1px solid var(--border)',
-                  borderRadius: 8,
+                  border: '1.5px solid var(--border)',
+                  borderRadius: 'var(--radius-sm)',
                   backgroundColor: 'var(--card-bg)',
                 }}>
                   <span style={{ fontSize: 16 }}>{cat.icon}</span>
                   <span style={{ fontSize: 13, width: 48 }}>{cat.name}</span>
                   <div style={{ flex: 1 }}>
-                    <Input
+                    <input
                       placeholder="0"
                       type="number"
                       inputMode="decimal"
                       value={amounts[cat.name] || ''}
-                      onChange={(v) => setAmounts({ ...amounts, [cat.name]: v })}
-                      style={{ '--font-size': '14px' } as React.CSSProperties}
+                      onChange={(e) => setAmounts({ ...amounts, [cat.name]: e.target.value })}
+                      style={{
+                        width: '100%',
+                        border: 'none',
+                        outline: 'none',
+                        background: 'transparent',
+                        fontSize: 14,
+                        color: 'var(--text)',
+                        WebkitAppearance: 'none',
+                      }}
                     />
                   </div>
                   <span style={{ fontSize: 12, color: 'var(--text-secondary)', width: 36, textAlign: 'right' }}>
@@ -227,7 +255,7 @@ export default function BudgetSetup({ initialData, onSubmit, loading, onClose }:
       {selected.size > 0 && (
         <div style={{
           fontSize: 13,
-          color: Math.abs(allocated - (parseFloat(totalAmount) || 0)) > 1 ? '#F59E0B' : 'var(--text-secondary)',
+          color: Math.abs(allocated - (parseFloat(totalAmount) || 0)) > 1 ? 'var(--warning)' : 'var(--text-secondary)',
           marginBottom: 16,
           textAlign: 'center',
         }}>
@@ -238,11 +266,9 @@ export default function BudgetSetup({ initialData, onSubmit, loading, onClose }:
       {/* Submit */}
       <Button
         block
-        color="primary"
-        size="large"
+        size="lg"
         loading={loading}
         onClick={handleSubmit}
-        style={{ borderRadius: 8, height: 48 }}
       >
         {initialData ? '更新预算' : '设置预算'}
       </Button>
@@ -251,8 +277,9 @@ export default function BudgetSetup({ initialData, onSubmit, loading, onClose }:
 }
 
 const labelStyle: React.CSSProperties = {
-  fontSize: 13,
+  fontSize: 'var(--font-size-sm)' as any,
   color: 'var(--text-secondary)',
   marginBottom: 6,
   display: 'block',
+  fontWeight: 500,
 };

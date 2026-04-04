@@ -1,7 +1,8 @@
 'use client';
 
-import { Button } from 'antd-mobile';
+import Button from '@/components/ui/Button';
 import { usePWAInstall } from '@/hooks/usePWAInstall';
+import { IconDownload } from '@/components/ui/icons';
 
 export default function PWAInstallBanner() {
   const { canInstall, isInstalled, isIOS, dismissed, promptInstall, dismiss } = usePWAInstall();
@@ -14,8 +15,8 @@ export default function PWAInstallBanner() {
       <div style={{
         margin: '0 16px 12px',
         padding: 16,
-        borderRadius: 12,
-        background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+        borderRadius: 'var(--radius-lg)',
+        background: 'var(--gradient-primary)',
         color: '#fff',
       }}>
         <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 6 }}>
@@ -25,31 +26,39 @@ export default function PWAInstallBanner() {
           安装应用获得更流畅的体验，像原生 App 一样使用
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <Button
-            size="small"
+          <button
             onClick={promptInstall}
             style={{
-              borderRadius: 6,
+              padding: '8px 16px',
+              borderRadius: 'var(--radius-pill)',
               backgroundColor: '#fff',
-              color: '#4F46E5',
+              color: 'var(--primary)',
               border: 'none',
               fontWeight: 600,
+              fontSize: 13,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
             }}
           >
+            <IconDownload size={14} color="var(--primary)" />
             立即安装
-          </Button>
-          <Button
-            size="small"
+          </button>
+          <button
             onClick={dismiss}
             style={{
-              borderRadius: 6,
+              padding: '8px 16px',
+              borderRadius: 'var(--radius-pill)',
               backgroundColor: 'rgba(255,255,255,0.2)',
               color: '#fff',
               border: 'none',
+              fontSize: 13,
+              cursor: 'pointer',
             }}
           >
             稍后再说
-          </Button>
+          </button>
         </div>
       </div>
     );
@@ -61,9 +70,9 @@ export default function PWAInstallBanner() {
       <div style={{
         margin: '0 16px 12px',
         padding: 16,
-        borderRadius: 12,
+        borderRadius: 'var(--radius-lg)',
         background: 'var(--card-bg)',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+        boxShadow: 'var(--shadow-sm)',
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ fontSize: 14, fontWeight: 600 }}>添加到主屏幕</div>

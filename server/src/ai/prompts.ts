@@ -19,9 +19,9 @@ export function getParsePrompt(categoryList: string): string {
 }
 
 // Keep old exports for backward compatibility with intent (no dynamic categories needed)
-export const CLASSIFY_PROMPT = getClassifyPrompt('餐饮、交通、日用品、住房、娱乐、医疗、服饰、宠物、人情、教育、其他');
+export const CLASSIFY_PROMPT = getClassifyPrompt('餐饮、交通、日用品、住房、水电物业、房贷、车贷、通讯订阅、约会娱乐、医疗、服饰、宠物、人情、教育、其他');
 
-export const PARSE_PROMPT = getParsePrompt('餐饮、交通、日用品、住房、娱乐、医疗、服饰、宠物、人情、教育、其他');
+export const PARSE_PROMPT = getParsePrompt('餐饮、交通、日用品、住房、水电物业、房贷、车贷、通讯订阅、约会娱乐、医疗、服饰、宠物、人情、教育、其他');
 
 export const INTENT_PROMPT = `你是一个智能记账助手的意图识别模块。根据用户输入判断意图。
 

@@ -67,27 +67,15 @@ export default function LoginPage() {
   const inputStyle: React.CSSProperties = {
     width: '100%',
     fontSize: 16,
-    padding: '12px',
-    border: '1px solid var(--border)',
-    borderRadius: 8,
-    backgroundColor: 'var(--card-bg)',
+    padding: '14px',
+    border: '1.5px solid #F0E8E5',
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
     outline: 'none',
     boxSizing: 'border-box',
     WebkitAppearance: 'none',
-  };
-
-  const buttonStyle: React.CSSProperties = {
-    width: '100%',
-    height: 48,
-    fontSize: 16,
-    fontWeight: 600,
-    color: '#fff',
-    backgroundColor: '#4F46E5',
-    border: 'none',
-    borderRadius: 8,
-    cursor: 'pointer',
-    WebkitAppearance: 'none',
-    touchAction: 'manipulation',
+    color: '#2D2D3A',
+    transition: 'border-color 150ms, box-shadow 150ms',
   };
 
   return (
@@ -98,17 +86,41 @@ export default function LoginPage() {
       alignItems: 'center',
       justifyContent: 'center',
       padding: 24,
-      backgroundColor: 'var(--bg)',
+      backgroundColor: '#FFF8F6',
     }}>
-      <div style={{ fontSize: 56, marginBottom: 8 }}>🤝</div>
-      <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 4 }}>合账</h1>
-      <p style={{ color: 'var(--text-secondary)', marginBottom: 40, fontSize: 14 }}>
+      {/* Decorative gradient blob */}
+      <div style={{
+        position: 'fixed',
+        top: -100,
+        right: -100,
+        width: 300,
+        height: 300,
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(255,107,107,0.12) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
+      <div style={{
+        position: 'fixed',
+        bottom: -80,
+        left: -80,
+        width: 250,
+        height: 250,
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(179,157,219,0.1) 0%, transparent 70%)',
+        pointerEvents: 'none',
+      }} />
+
+      <div style={{ fontSize: 56, marginBottom: 8, animation: 'float 3s ease-in-out infinite' }}>🤝</div>
+      <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 4 }}>
+        <span className="gradient-text">合账</span>
+      </h1>
+      <p style={{ color: '#8E8E9E', marginBottom: 40, fontSize: 14 }}>
         AI 帮你们一起管钱
       </p>
 
-      <div style={{ width: '100%', maxWidth: 360 }}>
+      <div style={{ width: '100%', maxWidth: 360, position: 'relative', zIndex: 1 }}>
         <div style={{ marginBottom: 16 }}>
-          <label style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>
+          <label style={{ fontSize: 13, color: '#8E8E9E', marginBottom: 6, display: 'block', fontWeight: 500 }}>
             手机号
           </label>
           <input
@@ -119,11 +131,28 @@ export default function LoginPage() {
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             style={inputStyle}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = '#FF6B6B';
+              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255,107,107,0.12)';
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = '#F0E8E5';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
           />
         </div>
 
         {error && (
-          <div style={{ color: '#EF4444', fontSize: 13, marginBottom: 12, textAlign: 'center' }}>
+          <div style={{
+            color: '#EF5350',
+            fontSize: 13,
+            marginBottom: 12,
+            textAlign: 'center',
+            padding: '8px 12px',
+            background: '#FFEBEE',
+            borderRadius: 8,
+            animation: 'fadeInUp 200ms var(--ease-spring)',
+          }}>
             {error}
           </div>
         )}
@@ -132,14 +161,28 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={handleSendCode}
-            style={buttonStyle}
+            className="pressable"
+            style={{
+              width: '100%',
+              height: 50,
+              fontSize: 16,
+              fontWeight: 600,
+              color: '#fff',
+              background: 'linear-gradient(135deg, #FF6B6B, #FFAB91)',
+              border: 'none',
+              borderRadius: 999,
+              cursor: 'pointer',
+              WebkitAppearance: 'none',
+              touchAction: 'manipulation',
+              boxShadow: '0 4px 14px rgba(255,107,107,0.3)',
+            }}
           >
             发送验证码
           </button>
         ) : (
           <>
             <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>
+              <label style={{ fontSize: 13, color: '#8E8E9E', marginBottom: 6, display: 'block', fontWeight: 500 }}>
                 验证码
               </label>
               <input
@@ -149,25 +192,60 @@ export default function LoginPage() {
                 maxLength={6}
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                style={inputStyle}
+                style={{ ...inputStyle, textAlign: 'center', letterSpacing: 8, fontSize: 20, fontWeight: 600 }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--primary)';
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255,107,107,0.12)';
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--border)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
               />
             </div>
             <button
               type="button"
               onClick={handleLogin}
               disabled={loading}
+              className="pressable"
               style={{
-                ...buttonStyle,
+                width: '100%',
+                height: 50,
+                fontSize: 16,
+                fontWeight: 600,
+                color: '#fff',
+                background: 'var(--gradient-primary)',
+                border: 'none',
+                borderRadius: 'var(--radius-pill)',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                WebkitAppearance: 'none',
+                touchAction: 'manipulation',
                 opacity: loading ? 0.6 : 1,
+                boxShadow: '0 4px 14px rgba(255,107,107,0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
               }}
             >
+              {loading && (
+                <span style={{
+                  width: 16,
+                  height: 16,
+                  border: '2px solid #fff',
+                  borderTopColor: 'transparent',
+                  borderRadius: '50%',
+                  animation: 'spin 0.8s linear infinite',
+                  display: 'inline-block',
+                }} />
+              )}
               {loading ? '登录中...' : '登录'}
             </button>
             <p style={{
               textAlign: 'center',
               marginTop: 12,
               fontSize: 13,
-              color: 'var(--text-secondary)',
+              color: '#B5B5C3',
             }}>
               MVP 模式验证码: 123456
             </p>

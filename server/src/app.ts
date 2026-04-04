@@ -9,11 +9,21 @@ import chatRoutes from './routes/chat.js';
 import budgetRoutes from './routes/budgets.js';
 import reportRoutes from './routes/reports.js';
 import categoryRoutes from './routes/categories.js';
+import sttRoutes from './routes/stt.js';
 
 export async function buildApp() {
   const app = Fastify({
     logger: true,
+    bodyLimit: 10 * 1024 * 1024, // 10 MB for audio uploads
   });
+
+  // Register raw body content type parsers for audio uploads
+  const audioTypes = ['audio/webm', 'audio/mp4', 'audio/m4a', 'audio/wav', 'audio/ogg', 'audio/mpeg', 'audio/mp3', 'audio/x-m4a', 'audio/aac', 'application/octet-stream'];
+  for (const ct of audioTypes) {
+    app.addContentTypeParser(ct, { parseAs: 'buffer' }, (req: any, body: any, done: any) => {
+      done(null, body);
+    });
+  }
 
   // Plugins
   await app.register(corsPlugin);
@@ -28,6 +38,7 @@ export async function buildApp() {
   await app.register(budgetRoutes);
   await app.register(reportRoutes);
   await app.register(categoryRoutes);
+  await app.register(sttRoutes);
 
   // Health check
   app.get('/api/health', async () => {

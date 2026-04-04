@@ -13,7 +13,7 @@ interface Props {
 export default function BudgetRingChart({ totalBudget, totalSpent }: Props) {
   const remaining = Math.max(totalBudget - totalSpent, 0);
   const percentage = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
-  const overBudget = percentage >= 100;
+  const overBudget = percentage > 100;
 
   const option = {
     series: [
@@ -28,12 +28,12 @@ export default function BudgetRingChart({ totalBudget, totalSpent }: Props) {
           {
             value: totalSpent,
             name: '已花费',
-            itemStyle: { color: overBudget ? '#EF4444' : '#4F46E5' },
+            itemStyle: { color: overBudget ? 'var(--danger)' : '#FF6B6B' },
           },
           {
             value: remaining,
             name: '剩余',
-            itemStyle: { color: '#E5E7EB' },
+            itemStyle: { color: '#F0E8E5' },
           },
         ],
       },
@@ -55,7 +55,7 @@ export default function BudgetRingChart({ totalBudget, totalSpent }: Props) {
         <div style={{
           fontSize: 28,
           fontWeight: 700,
-          color: overBudget ? '#EF4444' : 'var(--text)',
+          color: overBudget ? 'var(--danger)' : 'var(--text)',
         }}>
           {percentage}%
         </div>

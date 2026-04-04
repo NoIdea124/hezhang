@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button, Input, Toast } from 'antd-mobile';
+import Button from '@/components/ui/Button';
+import { showToast } from '@/lib/toast';
 import { useAuthStore } from '@/stores/authStore';
 import { apiFetch } from '@/lib/api';
-import type { Space, SpaceMember } from '@hezhang/shared';
+import type { Space } from '@hezhang/shared';
 
 type Mode = 'choose' | 'create' | 'join';
 
@@ -29,7 +30,7 @@ export default function OnboardingPage() {
       setSpace(res.space);
       setCreatedSpace(res.space);
     } catch (e: any) {
-      Toast.show({ content: e.message });
+      showToast({ message: e.message, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -37,7 +38,7 @@ export default function OnboardingPage() {
 
   const handleJoin = async () => {
     if (!inviteCode) {
-      Toast.show({ content: '请输入邀请码' });
+      showToast('请输入邀请码');
       return;
     }
     setLoading(true);
@@ -47,10 +48,10 @@ export default function OnboardingPage() {
         body: JSON.stringify({ invite_code: inviteCode }),
       });
       setSpace(res.space);
-      Toast.show({ content: '加入成功！' });
+      showToast({ message: '加入成功！', type: 'success' });
       router.replace('/chat');
     } catch (e: any) {
-      Toast.show({ content: e.message });
+      showToast({ message: e.message, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -61,15 +62,28 @@ export default function OnboardingPage() {
       if (navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(createdSpace.invite_code);
       }
-      Toast.show({ content: '邀请码已复制' });
+      showToast({ message: '邀请码已复制', type: 'success' });
     }
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    fontSize: 16,
+    padding: '14px',
+    border: '1.5px solid var(--border)',
+    borderRadius: 'var(--radius-md)',
+    backgroundColor: 'var(--card-bg)',
+    outline: 'none',
+    color: 'var(--text)',
+    WebkitAppearance: 'none',
+    transition: 'border-color var(--duration-fast), box-shadow var(--duration-fast)',
   };
 
   // Created space - show invite code
   if (createdSpace) {
     return (
       <div style={containerStyle}>
-        <div style={{ fontSize: 56, marginBottom: 8 }}>🎉</div>
+        <div style={{ fontSize: 56, marginBottom: 8, animation: 'fadeInScale 500ms var(--ease-spring)' }}>🎉</div>
         <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 8 }}>空间已创建！</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: 32, fontSize: 14 }}>
           把邀请码发给你的伴侣，一起管账吧
@@ -81,27 +95,25 @@ export default function OnboardingPage() {
             fontSize: 32,
             fontWeight: 700,
             letterSpacing: 6,
-            color: 'var(--primary)',
             marginBottom: 16,
           }}>
-            {createdSpace.invite_code}
+            <span className="gradient-text">{createdSpace.invite_code}</span>
           </p>
-          <Button size="small" onClick={copyInviteCode}>
+          <Button size="sm" variant="outline" onClick={copyInviteCode}>
             复制邀请码
           </Button>
         </div>
 
         <Button
           block
-          color="primary"
-          size="large"
+          size="lg"
           onClick={() => router.replace('/chat')}
-          style={{ borderRadius: 8, height: 48, marginTop: 24, maxWidth: 360 }}
+          style={{ marginTop: 24, maxWidth: 360 }}
         >
           进入合账
         </Button>
 
-        <p style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 12 }}>
+        <p style={{ fontSize: 12, color: 'var(--text-tertiary)', marginTop: 12 }}>
           伴侣可以稍后加入，不影响你先使用
         </p>
       </div>
@@ -112,9 +124,9 @@ export default function OnboardingPage() {
   if (mode === 'choose') {
     return (
       <div style={containerStyle}>
-        <div style={{ fontSize: 56, marginBottom: 8 }}>🤝</div>
+        <div style={{ fontSize: 56, marginBottom: 8, animation: 'float 3s ease-in-out infinite' }}>🤝</div>
         <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 4 }}>
-          你好，{user?.nickname}
+          你好，<span className="gradient-text">{user?.nickname}</span>
         </h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: 32, fontSize: 14 }}>
           创建一个共同空间，或加入伴侣的空间
@@ -123,6 +135,7 @@ export default function OnboardingPage() {
         <div style={{ width: '100%', maxWidth: 360 }}>
           <div
             onClick={() => setMode('create')}
+            className="pressable"
             style={{
               ...cardStyle,
               cursor: 'pointer',
@@ -139,6 +152,7 @@ export default function OnboardingPage() {
 
           <div
             onClick={() => setMode('join')}
+            className="pressable"
             style={{
               ...cardStyle,
               cursor: 'pointer',
@@ -165,38 +179,33 @@ export default function OnboardingPage() {
 
         <div style={{ width: '100%', maxWidth: 360 }}>
           <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>
+            <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginBottom: 6, display: 'block', fontWeight: 500 }}>
               空间名称 (可选)
             </label>
-            <Input
+            <input
               placeholder="我们的小家"
               value={spaceName}
-              onChange={setSpaceName}
-              style={{
-                '--font-size': '16px',
-                padding: '12px',
-                border: '1px solid var(--border)',
-                borderRadius: 8,
-                backgroundColor: 'var(--card-bg)',
-              } as React.CSSProperties}
+              onChange={(e) => setSpaceName(e.target.value)}
+              style={inputStyle}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = 'var(--primary)';
+                e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255,107,107,0.12)';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
             />
           </div>
 
-          <Button
-            block
-            color="primary"
-            size="large"
-            loading={loading}
-            onClick={handleCreate}
-            style={{ borderRadius: 8, height: 48 }}
-          >
+          <Button block size="lg" loading={loading} onClick={handleCreate}>
             创建
           </Button>
           <Button
             block
-            fill="none"
+            variant="text"
             onClick={() => setMode('choose')}
-            style={{ marginTop: 8 }}
+            style={{ marginTop: 8, color: 'var(--text-secondary)' }}
           >
             返回
           </Button>
@@ -213,41 +222,40 @@ export default function OnboardingPage() {
 
       <div style={{ width: '100%', maxWidth: 360 }}>
         <div style={{ marginBottom: 16 }}>
-          <label style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>
+          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginBottom: 6, display: 'block', fontWeight: 500 }}>
             邀请码
           </label>
-          <Input
+          <input
             placeholder="输入 6 位邀请码"
             maxLength={6}
             value={inviteCode}
-            onChange={(v) => setInviteCode(v.toUpperCase())}
+            onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
             style={{
-              '--font-size': '20px',
-              padding: '12px',
-              border: '1px solid var(--border)',
-              borderRadius: 8,
-              backgroundColor: 'var(--card-bg)',
+              ...inputStyle,
+              fontSize: 20,
               textAlign: 'center',
-              letterSpacing: 4,
-            } as React.CSSProperties}
+              letterSpacing: 8,
+              fontWeight: 600,
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = 'var(--primary)';
+              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(255,107,107,0.12)';
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = 'var(--border)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
           />
         </div>
 
-        <Button
-          block
-          color="primary"
-          size="large"
-          loading={loading}
-          onClick={handleJoin}
-          style={{ borderRadius: 8, height: 48 }}
-        >
+        <Button block size="lg" loading={loading} onClick={handleJoin}>
           加入
         </Button>
         <Button
           block
-          fill="none"
+          variant="text"
           onClick={() => setMode('choose')}
-          style={{ marginTop: 8 }}
+          style={{ marginTop: 8, color: 'var(--text-secondary)' }}
         >
           返回
         </Button>
@@ -268,8 +276,8 @@ const containerStyle: React.CSSProperties = {
 
 const cardStyle: React.CSSProperties = {
   background: 'var(--card-bg)',
-  borderRadius: 12,
+  borderRadius: 'var(--radius-lg)',
   padding: 20,
-  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+  boxShadow: 'var(--shadow-md)',
   textAlign: 'center',
 };

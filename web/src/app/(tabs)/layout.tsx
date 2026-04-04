@@ -2,9 +2,10 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Toast } from 'antd-mobile';
 import AppTabBar from '@/components/common/TabBar';
 import OfflineBanner from '@/components/common/OfflineBanner';
+import { DialogContainer } from '@/components/ui/Dialog';
+import { showToast } from '@/lib/toast';
 import { useAuthStore } from '@/stores/authStore';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import type { WsEvent } from '@hezhang/shared';
@@ -37,25 +38,24 @@ export default function TabsLayout({
   const handleWsMessage = useCallback((event: WsEvent) => {
     switch (event.type) {
       case 'notification':
-        Toast.show({ content: event.data.message });
+        showToast(event.data.message);
         break;
       case 'expense:created':
       case 'expense:updated':
       case 'expense:deleted':
       case 'budget:updated':
       case 'budget:confirmed':
-        // Dispatch a custom event so individual pages can listen and refresh
         window.dispatchEvent(new CustomEvent('ws-sync', { detail: event }));
         break;
     }
   }, []);
 
-  // Only connect WebSocket when authenticated
   const shouldConnect = hydrated && !!token && !!space;
 
   return (
-    <div style={{ minHeight: '100vh', paddingBottom: 50, backgroundColor: 'var(--bg)' }}>
+    <div style={{ minHeight: '100vh', paddingBottom: 'calc(64px + env(safe-area-inset-bottom, 0px))', backgroundColor: 'var(--bg)' }}>
       <OfflineBanner />
+      <DialogContainer />
       {shouldConnect && <WsConnector onMessage={handleWsMessage} />}
       {(!hydrated || !token || !space) ? (
         <div style={{
@@ -65,7 +65,7 @@ export default function TabsLayout({
           justifyContent: 'center',
           backgroundColor: 'var(--bg)',
         }}>
-          <div style={{ fontSize: 40 }}>🤝</div>
+          <div style={{ fontSize: 40, animation: 'float 2s ease-in-out infinite' }}>🤝</div>
         </div>
       ) : (
         <>
@@ -77,7 +77,6 @@ export default function TabsLayout({
   );
 }
 
-// Separate component to conditionally use the hook
 function WsConnector({ onMessage }: { onMessage: (event: WsEvent) => void }) {
   useWebSocket({ onMessage });
   return null;

@@ -16,7 +16,6 @@ interface Props {
 }
 
 export default function DailyTrendChart({ dailyTotals, prevMonthDailyTotals, month }: Props) {
-  // Build day-indexed map (1-31)
   const thisMonth: Record<number, number> = {};
   const prevMonth: Record<number, number> = {};
 
@@ -66,9 +65,9 @@ export default function DailyTrendChart({ dailyTotals, prevMonthDailyTotals, mon
         type: 'line',
         smooth: true,
         data: days.map((d) => thisMonth[d] || 0),
-        lineStyle: { color: '#4F46E5', width: 2 },
-        itemStyle: { color: '#4F46E5' },
-        areaStyle: { color: 'rgba(79,70,229,0.08)' },
+        lineStyle: { color: '#FF6B6B', width: 2 },
+        itemStyle: { color: '#FF6B6B' },
+        areaStyle: { color: 'rgba(255,107,107,0.08)' },
         showSymbol: false,
       },
       {
@@ -76,8 +75,8 @@ export default function DailyTrendChart({ dailyTotals, prevMonthDailyTotals, mon
         type: 'line',
         smooth: true,
         data: days.map((d) => prevMonth[d] || 0),
-        lineStyle: { color: '#D1D5DB', width: 1.5, type: 'dashed' },
-        itemStyle: { color: '#D1D5DB' },
+        lineStyle: { color: '#F0E8E5', width: 1.5, type: 'dashed' },
+        itemStyle: { color: '#F0E8E5' },
         showSymbol: false,
       },
     ],

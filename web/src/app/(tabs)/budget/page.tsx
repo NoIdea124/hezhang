@@ -1,9 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button, Dialog, Popup, Toast } from 'antd-mobile';
-import { LeftOutline, RightOutline } from 'antd-mobile-icons';
 import { useRouter } from 'next/navigation';
+import Button from '@/components/ui/Button';
+import Dialog from '@/components/ui/Dialog';
+import Popup from '@/components/ui/Popup';
+import { showToast } from '@/lib/toast';
+import { IconBack, IconChevronRight } from '@/components/ui/icons';
 import { useBudgetStore } from '@/stores/budgetStore';
 import { useAuthStore } from '@/stores/authStore';
 import { formatCurrency } from '@/lib/format';
@@ -28,12 +31,12 @@ export default function BudgetPage() {
   const { budget, loading, month, setMonth, fetchBudget, createBudget, updateBudget, confirmBudget, deleteBudget } = useBudgetStore();
   const [showSetup, setShowSetup] = useState(false);
   const [setupLoading, setSetupLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     fetchBudget();
   }, []);
 
-  // Listen for WebSocket sync events
   useEffect(() => {
     const handler = (e: Event) => {
       const event = (e as CustomEvent).detail;
@@ -50,9 +53,9 @@ export default function BudgetPage() {
     try {
       await createBudget(data);
       setShowSetup(false);
-      Toast.show({ content: '预算设置成功' });
+      showToast({ message: '预算设置成功', type: 'success' });
     } catch (e: any) {
-      Toast.show({ content: e.message || '设置失败' });
+      showToast({ message: e.message || '设置失败', type: 'error' });
     } finally {
       setSetupLoading(false);
     }
@@ -64,36 +67,32 @@ export default function BudgetPage() {
     try {
       await updateBudget(budget.id, { total_amount: data.total_amount, categories: data.categories });
       setShowSetup(false);
-      Toast.show({ content: '预算已更新' });
+      showToast({ message: '预算已更新', type: 'success' });
     } catch (e: any) {
-      Toast.show({ content: e.message || '更新失败' });
+      showToast({ message: e.message || '更新失败', type: 'error' });
     } finally {
       setSetupLoading(false);
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!budget) return;
-    Dialog.confirm({
-      content: '确定删除本月预算吗？',
-      onConfirm: async () => {
-        try {
-          await deleteBudget(budget.id);
-          Toast.show({ content: '已删除' });
-        } catch (e: any) {
-          Toast.show({ content: e.message || '删除失败' });
-        }
-      },
-    });
+    setShowDeleteConfirm(false);
+    try {
+      await deleteBudget(budget.id);
+      showToast({ message: '已删除', type: 'success' });
+    } catch (e: any) {
+      showToast({ message: e.message || '删除失败', type: 'error' });
+    }
   };
 
   const handleConfirm = async () => {
     if (!budget) return;
     try {
       await confirmBudget(budget.id);
-      Toast.show({ content: '已确认' });
+      showToast({ message: '已确认', type: 'success' });
     } catch (e: any) {
-      Toast.show({ content: e.message || '确认失败' });
+      showToast({ message: e.message || '确认失败', type: 'error' });
     }
   };
 
@@ -110,79 +109,74 @@ export default function BudgetPage() {
         gap: 16,
         padding: '44px 16px 16px',
       }}>
-        <LeftOutline
-          fontSize={18}
+        <button
           onClick={() => setMonth(getAdjacentMonth(month, -1))}
-          style={{ cursor: 'pointer', color: 'var(--text-secondary)' }}
-        />
+          className="pressable"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--text-secondary)' }}
+        >
+          <IconBack size={18} />
+        </button>
         <span style={{ fontSize: 18, fontWeight: 600 }}>
           {formatMonth(month)} 预算
         </span>
-        <RightOutline
-          fontSize={18}
+        <button
           onClick={() => setMonth(getAdjacentMonth(month, 1))}
-          style={{ cursor: 'pointer', color: 'var(--text-secondary)' }}
-        />
+          className="pressable"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--text-secondary)' }}
+        >
+          <IconChevronRight size={18} />
+        </button>
       </div>
 
       {loading && (
         <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-secondary)' }}>
-          加载中...
+          <div className="skeleton" style={{ width: 120, height: 20, margin: '0 auto 8px' }} />
+          <div className="skeleton" style={{ width: 80, height: 16, margin: '0 auto' }} />
         </div>
       )}
 
       {/* No budget state */}
       {!loading && !budget && (
-        <div style={{ textAlign: 'center', padding: '60px 16px' }}>
+        <div style={{ textAlign: 'center', padding: '60px 16px', animation: 'fadeInUp 400ms var(--ease-spring)' }}>
           <div style={{ fontSize: 48 }}>📊</div>
           <p style={{ fontSize: 15, color: 'var(--text-secondary)', margin: '12px 0 24px' }}>
             本月还没有设置预算
           </p>
-          <Button
-            color="primary"
-            size="large"
-            onClick={() => setShowSetup(true)}
-            style={{ borderRadius: 8, width: 200 }}
-          >
-            设置预算
-          </Button>
-          <Button
-            fill="outline"
-            size="large"
-            onClick={() => router.push(`/report?month=${month}`)}
-            style={{ borderRadius: 8, width: 200, marginTop: 12 }}
-          >
-            📊 查看消费报告
-          </Button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'center' }}>
+            <Button size="lg" onClick={() => setShowSetup(true)} style={{ width: 200 }}>
+              设置预算
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => router.push(`/report?month=${month}`)}
+              style={{ width: 200 }}
+            >
+              📊 查看消费报告
+            </Button>
+          </div>
         </div>
       )}
 
       {/* Budget dashboard */}
       {!loading && budget && (
-        <div style={{ padding: '0 16px' }}>
+        <div style={{ padding: '0 16px', animation: 'fadeInUp 400ms var(--ease-spring)' }}>
           {/* Confirmation banner */}
           {budget.status !== 'active' && (
             <div style={{
               padding: '10px 14px',
-              borderRadius: 8,
-              backgroundColor: '#FEF3C7',
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: 'var(--warning-bg)',
               marginBottom: 12,
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
             }}>
-              <span style={{ fontSize: 13, color: '#92400E' }}>
+              <span style={{ fontSize: 13, color: 'var(--warning)' }}>
                 {!myConfirmed ? '预算待确认' : '等待伴侣确认'}
               </span>
               {!myConfirmed && (
-                <Button
-                  size="mini"
-                  color="warning"
-                  onClick={handleConfirm}
-                  style={{ borderRadius: 6 }}
-                >
-                  确认
-                </Button>
+                <Button size="sm" onClick={handleConfirm}>确认</Button>
               )}
             </div>
           )}
@@ -190,9 +184,9 @@ export default function BudgetPage() {
           {/* Ring chart card */}
           <div style={{
             background: 'var(--card-bg)',
-            borderRadius: 12,
+            borderRadius: 'var(--radius-lg)',
             padding: 16,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: 'var(--shadow-sm)',
             marginBottom: 12,
           }}>
             <BudgetRingChart totalBudget={budget.total_amount} totalSpent={budget.total_spent} />
@@ -205,7 +199,7 @@ export default function BudgetPage() {
               </div>
               <div style={{ textAlign: 'center' }}>
                 <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>剩余</div>
-                <div style={{ fontSize: 16, fontWeight: 600, marginTop: 2, color: remaining > 0 ? '#10B981' : '#EF4444' }}>
+                <div style={{ fontSize: 16, fontWeight: 600, marginTop: 2, color: remaining > 0 ? 'var(--success)' : budget.total_spent > budget.total_amount ? 'var(--danger)' : 'var(--text-secondary)' }}>
                   {formatCurrency(remaining)}
                 </div>
               </div>
@@ -216,42 +210,23 @@ export default function BudgetPage() {
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Daily available card */}
-          <div style={{
-            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%)',
-            borderRadius: 12,
-            padding: 16,
-            color: '#fff',
-            marginBottom: 12,
-          }}>
             {budget.remaining_days > 0 ? (
-              <>
-                <div style={{ fontSize: 13, opacity: 0.9 }}>今日可花</div>
-                <div style={{ fontSize: 28, fontWeight: 700, marginTop: 4 }}>
-                  {formatCurrency(budget.daily_available)}
-                </div>
-                <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>
-                  本月还剩 {budget.remaining_days} 天
-                </div>
-              </>
+              <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-secondary)', marginTop: 10 }}>
+                本月还剩 {budget.remaining_days} 天
+              </div>
             ) : (
-              <>
-                <div style={{ fontSize: 13, opacity: 0.9 }}>本月已结束</div>
-                <div style={{ fontSize: 20, fontWeight: 600, marginTop: 4 }}>
-                  共支出 {formatCurrency(budget.total_spent)}
-                </div>
-              </>
+              <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-secondary)', marginTop: 10 }}>
+                本月已结束
+              </div>
             )}
           </div>
 
           {/* Overall progress bar */}
           <div style={{
             background: 'var(--card-bg)',
-            borderRadius: 12,
+            borderRadius: 'var(--radius-lg)',
             padding: 14,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: 'var(--shadow-sm)',
             marginBottom: 12,
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
@@ -260,13 +235,16 @@ export default function BudgetPage() {
                 {Math.round((budget.total_spent / budget.total_amount) * 100)}%
               </span>
             </div>
-            <div style={{ height: 10, borderRadius: 5, backgroundColor: '#E5E7EB', overflow: 'hidden' }}>
+            <div style={{ height: 10, borderRadius: 5, backgroundColor: 'var(--border)', overflow: 'hidden' }}>
               <div style={{
                 height: '100%',
                 width: `${Math.min((budget.total_spent / budget.total_amount) * 100, 100)}%`,
                 borderRadius: 5,
-                backgroundColor: budget.total_spent >= budget.total_amount ? '#EF4444'
-                  : budget.total_spent >= budget.total_amount * 0.8 ? '#F59E0B' : '#10B981',
+                background: budget.total_spent > budget.total_amount
+                  ? 'var(--danger)'
+                  : budget.total_spent >= budget.total_amount * 0.8
+                  ? 'var(--gradient-warm)'
+                  : 'var(--gradient-fresh)',
                 transition: 'width 0.3s ease',
               }} />
             </div>
@@ -276,9 +254,9 @@ export default function BudgetPage() {
           {budget.categories.length > 0 && (
             <div style={{
               background: 'var(--card-bg)',
-              borderRadius: 12,
+              borderRadius: 'var(--radius-lg)',
               padding: 14,
-              boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+              boxShadow: 'var(--shadow-sm)',
               marginBottom: 12,
             }}>
               <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>分类预算</div>
@@ -289,12 +267,11 @@ export default function BudgetPage() {
             </div>
           )}
 
-          {/* View report button */}
+          {/* View report */}
           <Button
             block
-            color="primary"
             onClick={() => router.push(`/report?month=${month}`)}
-            style={{ borderRadius: 8, marginTop: 16 }}
+            style={{ marginTop: 16 }}
           >
             📊 查看消费报告
           </Button>
@@ -303,18 +280,17 @@ export default function BudgetPage() {
           <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
             <Button
               block
-              fill="outline"
+              variant="outline"
               onClick={() => setShowSetup(true)}
-              style={{ borderRadius: 8, flex: 1 }}
+              style={{ flex: 1 }}
             >
               编辑预算
             </Button>
             <Button
               block
-              color="danger"
-              fill="outline"
-              onClick={handleDelete}
-              style={{ borderRadius: 8, flex: 1 }}
+              variant="danger"
+              onClick={() => setShowDeleteConfirm(true)}
+              style={{ flex: 1 }}
             >
               删除预算
             </Button>
@@ -322,16 +298,23 @@ export default function BudgetPage() {
         </div>
       )}
 
+      {/* Delete confirm dialog */}
+      <Dialog
+        visible={showDeleteConfirm}
+        title="删除预算"
+        content="确定删除本月预算吗？"
+        actions={[
+          { text: '取消', onClick: () => setShowDeleteConfirm(false) },
+          { text: '删除', danger: true, bold: true, onClick: handleDelete },
+        ]}
+        onClose={() => setShowDeleteConfirm(false)}
+      />
+
       {/* Budget Setup Popup */}
       <Popup
         visible={showSetup}
-        onMaskClick={() => setShowSetup(false)}
-        position="bottom"
-        bodyStyle={{
-          height: '85vh',
-          borderTopLeftRadius: 16,
-          borderTopRightRadius: 16,
-        }}
+        onClose={() => setShowSetup(false)}
+        height="85vh"
       >
         <BudgetSetup
           initialData={budget || undefined}

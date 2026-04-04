@@ -39,7 +39,14 @@ export default function CategoryBarChart({ categoryTotals }: Props) {
       data: values.reverse(),
       barWidth: 16,
       itemStyle: {
-        color: '#4F46E5',
+        color: {
+          type: 'linear',
+          x: 0, y: 0, x2: 1, y2: 0,
+          colorStops: [
+            { offset: 0, color: '#FF6B6B' },
+            { offset: 1, color: '#FFAB91' },
+          ],
+        },
         borderRadius: [0, 4, 4, 0],
       },
     }],

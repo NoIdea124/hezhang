@@ -1,7 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Button, Input, TextArea, DatePicker, Switch, Toast } from 'antd-mobile';
+import Button from '@/components/ui/Button';
+import Switch from '@/components/ui/Switch';
+import DatePicker from '@/components/ui/DatePicker';
+import { showToast } from '@/lib/toast';
 import { useCategories } from '@/hooks/useCategories';
 import type { Ownership } from '@hezhang/shared';
 
@@ -32,11 +35,11 @@ export default function ExpenseForm({ initialData, onSubmit, submitText = '记�
   const handleSubmit = async () => {
     const num = parseFloat(amount);
     if (!num || num <= 0) {
-      Toast.show({ content: '请输入正确的金额' });
+      showToast('请输入正确的金额');
       return;
     }
     if (!category) {
-      Toast.show({ content: '请选择分类' });
+      showToast('请选择分类');
       return;
     }
     await onSubmit({
@@ -56,23 +59,28 @@ export default function ExpenseForm({ initialData, onSubmit, submitText = '记�
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          border: '1px solid var(--border)',
-          borderRadius: 8,
+          border: '1.5px solid var(--border)',
+          borderRadius: 'var(--radius-md)',
           backgroundColor: 'var(--card-bg)',
-          padding: '8px 12px',
+          padding: '8px 14px',
         }}>
-          <span style={{ fontSize: 24, fontWeight: 600, color: 'var(--text-secondary)', marginRight: 4 }}>¥</span>
-          <Input
+          <span style={{ fontSize: 24, fontWeight: 600, color: 'var(--primary)', marginRight: 4 }}>¥</span>
+          <input
             placeholder="0.00"
             type="number"
             inputMode="decimal"
             value={amount}
-            onChange={setAmount}
+            onChange={(e) => setAmount(e.target.value)}
             style={{
-              '--font-size': '28px',
-              '--text-align': 'left',
               flex: 1,
-            } as React.CSSProperties}
+              border: 'none',
+              outline: 'none',
+              background: 'transparent',
+              fontSize: 28,
+              fontWeight: 600,
+              color: 'var(--text)',
+              WebkitAppearance: 'none',
+            }}
           />
         </div>
       </div>
@@ -89,16 +97,18 @@ export default function ExpenseForm({ initialData, onSubmit, submitText = '记�
             <div
               key={cat.name}
               onClick={() => setCategory(cat.name)}
+              className="pressable"
               style={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 padding: '10px 4px',
-                borderRadius: 8,
+                borderRadius: 'var(--radius-sm)',
                 cursor: 'pointer',
-                backgroundColor: category === cat.name ? 'var(--primary)' : 'var(--card-bg)',
+                background: category === cat.name ? 'var(--gradient-primary)' : 'var(--card-bg)',
                 color: category === cat.name ? '#fff' : 'var(--text)',
-                border: `1px solid ${category === cat.name ? 'var(--primary)' : 'var(--border)'}`,
+                border: `1.5px solid ${category === cat.name ? 'transparent' : 'var(--border)'}`,
+                boxShadow: category === cat.name ? '0 2px 8px rgba(255,107,107,0.2)' : 'none',
                 transition: 'all 0.15s',
               }}
             >
@@ -114,10 +124,11 @@ export default function ExpenseForm({ initialData, onSubmit, submitText = '记�
         <label style={labelStyle}>日期</label>
         <div
           onClick={() => setDatePickerVisible(true)}
+          className="pressable"
           style={{
-            padding: '12px',
-            border: '1px solid var(--border)',
-            borderRadius: 8,
+            padding: '12px 14px',
+            border: '1.5px solid var(--border)',
+            borderRadius: 'var(--radius-md)',
             backgroundColor: 'var(--card-bg)',
             cursor: 'pointer',
             fontSize: 15,
@@ -128,11 +139,10 @@ export default function ExpenseForm({ initialData, onSubmit, submitText = '记�
         <DatePicker
           visible={datePickerVisible}
           onClose={() => setDatePickerVisible(false)}
-          onConfirm={(val) => {
+          onChange={(val) => {
             setExpenseDate(val.toISOString().split('T')[0]);
-            setDatePickerVisible(false);
           }}
-          defaultValue={new Date(expenseDate + 'T00:00:00')}
+          value={new Date(expenseDate + 'T00:00:00')}
           max={new Date()}
         />
       </div>
@@ -140,19 +150,25 @@ export default function ExpenseForm({ initialData, onSubmit, submitText = '记�
       {/* Note */}
       <div style={{ marginBottom: 20 }}>
         <label style={labelStyle}>备注</label>
-        <TextArea
+        <textarea
           placeholder="消费简要说明（可选）"
           value={note}
-          onChange={setNote}
+          onChange={(e) => setNote(e.target.value)}
           maxLength={100}
           rows={2}
           style={{
-            '--font-size': '15px',
-            padding: '12px',
-            border: '1px solid var(--border)',
-            borderRadius: 8,
+            width: '100%',
+            fontSize: 15,
+            padding: '12px 14px',
+            border: '1.5px solid var(--border)',
+            borderRadius: 'var(--radius-md)',
             backgroundColor: 'var(--card-bg)',
-          } as React.CSSProperties}
+            outline: 'none',
+            resize: 'none',
+            lineHeight: 'var(--line-height)',
+            color: 'var(--text)',
+            WebkitAppearance: 'none',
+          }}
         />
       </div>
 
@@ -162,9 +178,9 @@ export default function ExpenseForm({ initialData, onSubmit, submitText = '记�
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '12px',
-        border: '1px solid var(--border)',
-        borderRadius: 8,
+        padding: '12px 14px',
+        border: '1.5px solid var(--border)',
+        borderRadius: 'var(--radius-md)',
         backgroundColor: 'var(--card-bg)',
       }}>
         <div>
@@ -178,21 +194,11 @@ export default function ExpenseForm({ initialData, onSubmit, submitText = '记�
         <Switch
           checked={ownership === 'shared'}
           onChange={(v) => setOwnership(v ? 'shared' : 'personal')}
-          style={{
-            '--checked-color': 'var(--primary)',
-          } as React.CSSProperties}
         />
       </div>
 
       {/* Submit */}
-      <Button
-        block
-        color="primary"
-        size="large"
-        loading={loading}
-        onClick={handleSubmit}
-        style={{ borderRadius: 8, height: 48 }}
-      >
+      <Button block size="lg" loading={loading} onClick={handleSubmit}>
         {submitText}
       </Button>
     </div>
@@ -200,8 +206,9 @@ export default function ExpenseForm({ initialData, onSubmit, submitText = '记�
 }
 
 const labelStyle: React.CSSProperties = {
-  fontSize: 13,
+  fontSize: 'var(--font-size-sm)' as any,
   color: 'var(--text-secondary)',
   marginBottom: 6,
   display: 'block',
+  fontWeight: 500,
 };

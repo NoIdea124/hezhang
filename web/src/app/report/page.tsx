@@ -1,8 +1,9 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { NavBar, Toast } from 'antd-mobile';
-import { LeftOutline, RightOutline } from 'antd-mobile-icons';
+import NavBar from '@/components/ui/NavBar';
+import { showToast } from '@/lib/toast';
+import { IconBack, IconChevronRight } from '@/components/ui/icons';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getCategoryIcon } from '@hezhang/shared';
 import { apiFetch } from '@/lib/api';
@@ -50,7 +51,9 @@ export default function ReportPage() {
   return (
     <Suspense fallback={
       <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-        <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-secondary)' }}>加载中...</div>
+        <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-secondary)' }}>
+          <div className="skeleton" style={{ width: 120, height: 20, margin: '0 auto' }} />
+        </div>
       </div>
     }>
       <ReportContent />
@@ -72,7 +75,7 @@ function ReportContent() {
       const res = await apiFetch<{ report: ReportData }>(`/reports?month=${m}`);
       setReport(res.report);
     } catch (e: any) {
-      Toast.show({ content: e.message || '获取报告失败' });
+      showToast({ message: e.message || '获取报告失败', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -87,9 +90,7 @@ function ReportContent() {
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      <NavBar onBack={() => router.back()} style={{ '--height': '44px' } as any}>
-        消费报告
-      </NavBar>
+      <NavBar title="消费报告" onBack={() => router.back()} />
 
       {/* Month selector */}
       <div style={{
@@ -99,24 +100,30 @@ function ReportContent() {
         gap: 16,
         padding: '12px 16px',
       }}>
-        <LeftOutline
-          fontSize={18}
+        <button
           onClick={handlePrev}
-          style={{ cursor: 'pointer', color: 'var(--text-secondary)' }}
-        />
+          className="pressable"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--text-secondary)' }}
+        >
+          <IconBack size={18} />
+        </button>
         <span style={{ fontSize: 17, fontWeight: 600 }}>
           {formatMonth(month)}
         </span>
-        <RightOutline
-          fontSize={18}
+        <button
           onClick={handleNext}
-          style={{ cursor: 'pointer', color: 'var(--text-secondary)' }}
-        />
+          className="pressable"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--text-secondary)' }}
+        >
+          <IconChevronRight size={18} />
+        </button>
       </div>
 
       {loading && (
-        <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-secondary)' }}>
-          加载中...
+        <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="skeleton" style={{ height: 140, borderRadius: 'var(--radius-lg)' }} />
+          <div className="skeleton" style={{ height: 80, borderRadius: 'var(--radius-lg)' }} />
+          <div className="skeleton" style={{ height: 200, borderRadius: 'var(--radius-lg)' }} />
         </div>
       )}
 
@@ -124,11 +131,13 @@ function ReportContent() {
         <div style={{ padding: '0 16px 32px' }}>
           {/* Summary card */}
           <div style={{
-            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%)',
-            borderRadius: 12,
+            background: 'var(--gradient-primary)',
+            borderRadius: 'var(--radius-lg)',
             padding: 20,
             color: '#fff',
             marginBottom: 16,
+            boxShadow: '0 4px 16px rgba(255,107,107,0.2)',
+            animation: 'fadeInUp 300ms var(--ease-spring)',
           }}>
             <div style={{ fontSize: 13, opacity: 0.9 }}>本月总支出</div>
             <div style={{ fontSize: 32, fontWeight: 700, margin: '4px 0 12px' }}>
@@ -164,9 +173,9 @@ function ReportContent() {
           {report.userTotals.length > 0 && (
             <div style={{
               background: 'var(--card-bg)',
-              borderRadius: 12,
+              borderRadius: 'var(--radius-lg)',
               padding: 14,
-              boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+              boxShadow: 'var(--shadow-sm)',
               marginBottom: 16,
             }}>
               <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 10 }}>人均分布</div>
@@ -174,8 +183,8 @@ function ReportContent() {
                 {report.userTotals.map((u) => (
                   <div key={u.user_id} style={{
                     flex: 1,
-                    background: '#F3F4F6',
-                    borderRadius: 8,
+                    background: 'var(--bg-secondary)',
+                    borderRadius: 'var(--radius-sm)',
                     padding: '10px 12px',
                     textAlign: 'center',
                   }}>
@@ -195,9 +204,9 @@ function ReportContent() {
           {/* Daily trend chart */}
           <div style={{
             background: 'var(--card-bg)',
-            borderRadius: 12,
+            borderRadius: 'var(--radius-lg)',
             padding: 14,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: 'var(--shadow-sm)',
             marginBottom: 16,
           }}>
             <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>每日趋势</div>
@@ -211,9 +220,9 @@ function ReportContent() {
           {/* Category pie chart */}
           <div style={{
             background: 'var(--card-bg)',
-            borderRadius: 12,
+            borderRadius: 'var(--radius-lg)',
             padding: 14,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: 'var(--shadow-sm)',
             marginBottom: 16,
           }}>
             <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>分类占比</div>
@@ -223,9 +232,9 @@ function ReportContent() {
           {/* Category bar chart */}
           <div style={{
             background: 'var(--card-bg)',
-            borderRadius: 12,
+            borderRadius: 'var(--radius-lg)',
             padding: 14,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+            boxShadow: 'var(--shadow-sm)',
             marginBottom: 16,
           }}>
             <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>分类排行</div>
@@ -236,9 +245,9 @@ function ReportContent() {
           {Object.keys(report.categoryTotals).length > 0 && (
             <div style={{
               background: 'var(--card-bg)',
-              borderRadius: 12,
+              borderRadius: 'var(--radius-lg)',
               padding: 14,
-              boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+              boxShadow: 'var(--shadow-sm)',
             }}>
               <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 10 }}>分类明细</div>
               {Object.entries(report.categoryTotals)
@@ -251,7 +260,7 @@ function ReportContent() {
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       padding: '8px 0',
-                      borderBottom: '1px solid #F3F4F6',
+                      borderBottom: '1px solid var(--border-light)',
                     }}>
                       <span style={{ fontSize: 14 }}>{getCategoryIcon(cat)} {cat}</span>
                       <span style={{ fontSize: 14, fontWeight: 500 }}>
