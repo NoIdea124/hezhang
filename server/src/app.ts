@@ -10,6 +10,9 @@ import budgetRoutes from './routes/budgets.js';
 import reportRoutes from './routes/reports.js';
 import categoryRoutes from './routes/categories.js';
 import sttRoutes from './routes/stt.js';
+import commentRoutes from './routes/comments.js';
+import feedbackRoutes from './routes/feedback.js';
+import reminderRoutes from './routes/reminders.js';
 
 export async function buildApp() {
   const app = Fastify({
@@ -39,6 +42,9 @@ export async function buildApp() {
   await app.register(reportRoutes);
   await app.register(categoryRoutes);
   await app.register(sttRoutes);
+  await app.register(commentRoutes);
+  await app.register(feedbackRoutes);
+  await app.register(reminderRoutes);
 
   // Health check
   app.get('/api/health', async () => {

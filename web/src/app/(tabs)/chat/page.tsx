@@ -9,18 +9,26 @@ import { formatCurrency, getCurrentMonth } from '@/lib/format';
 import CategoryIcon from '@/components/common/CategoryIcon';
 import ChatMessageList from '@/components/chat/ChatMessageList';
 import ChatInput from '@/components/chat/ChatInput';
-import type { Expense, ChatMessage, ChatResponse } from '@hezhang/shared';
+import Popup from '@/components/ui/Popup';
+import Button from '@/components/ui/Button';
+import type { Expense, ChatMessage, ChatResponse, Reminder } from '@hezhang/shared';
 
 export default function ChatPage() {
   const router = useRouter();
   const space = useAuthStore((s) => s.space);
+  const user = useAuthStore((s) => s.user);
   const [todayExpenses, setTodayExpenses] = useState<Expense[]>([]);
   const [monthTotal, setMonthTotal] = useState(0);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sending, setSending] = useState(false);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [showReminderPopup, setShowReminderPopup] = useState(false);
+  const [reminderText, setReminderText] = useState('');
+  const [reminderSending, setReminderSending] = useState(false);
 
   useEffect(() => {
     loadTodayData();
+    loadReminders();
   }, []);
 
   useEffect(() => {
@@ -28,6 +36,9 @@ export default function ChatPage() {
       const event = (e as CustomEvent).detail;
       if (event.type?.startsWith('expense:')) {
         loadTodayData();
+      }
+      if (event.type === 'reminder:created') {
+        loadReminders();
       }
     };
     window.addEventListener('ws-sync', handler);
@@ -43,6 +54,43 @@ export default function ChatPage() {
       setMonthTotal(res.expenses.reduce((sum, e) => sum + e.amount, 0));
     } catch {
       // ignore
+    }
+  };
+
+  const loadReminders = async () => {
+    try {
+      const res = await apiFetch<{ reminders: Reminder[] }>('/reminders');
+      setReminders(res.reminders);
+    } catch {
+      // ignore
+    }
+  };
+
+  const dismissReminder = async (id: string) => {
+    try {
+      await apiFetch(`/reminders/${id}/read`, { method: 'PUT' });
+      setReminders((prev) => prev.filter((r) => r.id !== id));
+    } catch {
+      // ignore
+    }
+  };
+
+  const sendReminder = async () => {
+    const trimmed = reminderText.trim();
+    if (!trimmed || reminderSending) return;
+    setReminderSending(true);
+    try {
+      await apiFetch('/reminders', {
+        method: 'POST',
+        body: JSON.stringify({ content: trimmed }),
+      });
+      setReminderText('');
+      setShowReminderPopup(false);
+      showToast({ message: '提醒已发送', type: 'success' });
+    } catch (e: any) {
+      showToast({ message: e.message || '发送失败', type: 'error' });
+    } finally {
+      setReminderSending(false);
     }
   };
 
@@ -108,6 +156,53 @@ export default function ChatPage() {
         </div>
       </div>
 
+      {/* Reminders Banner */}
+      {reminders.length > 0 && (
+        <div style={{ padding: '0 16px', marginBottom: 8 }}>
+          {reminders.map((r) => (
+            <div
+              key={r.id}
+              style={{
+                background: 'linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)',
+                borderRadius: 'var(--radius-md)',
+                padding: '10px 14px',
+                marginBottom: 6,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                animation: 'fadeInDown 300ms var(--ease-spring)',
+              }}
+            >
+              <span style={{ fontSize: 20 }}>💌</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12, color: '#E65100', fontWeight: 500 }}>
+                  {r.from_nickname || '伴侣'} 提醒你
+                </div>
+                <div style={{ fontSize: 14, color: '#BF360C', marginTop: 2, wordBreak: 'break-word' }}>
+                  {r.content}
+                </div>
+              </div>
+              <button
+                onClick={() => dismissReminder(r.id)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: 12,
+                  color: '#E65100',
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                  borderRadius: 'var(--radius-sm)',
+                  flexShrink: 0,
+                  fontWeight: 500,
+                }}
+              >
+                知道了
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Month Budget Card */}
       <div style={{ padding: '0 16px' }}>
         <div style={{
@@ -117,13 +212,36 @@ export default function ChatPage() {
           color: '#fff',
           marginBottom: 12,
           boxShadow: '0 4px 16px rgba(255,107,107,0.2)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
         }}>
-          <div style={{ fontSize: 13, opacity: 0.9 }}>
-            {getCurrentMonth().replace('-', '年')}月支出
+          <div>
+            <div style={{ fontSize: 13, opacity: 0.9 }}>
+              {getCurrentMonth().replace('-', '年')}月支出
+            </div>
+            <div style={{ fontSize: 28, fontWeight: 700, marginTop: 4 }}>
+              {formatCurrency(monthTotal)}
+            </div>
           </div>
-          <div style={{ fontSize: 28, fontWeight: 700, marginTop: 4 }}>
-            {formatCurrency(monthTotal)}
-          </div>
+          <button
+            onClick={() => setShowReminderPopup(true)}
+            style={{
+              background: 'rgba(255,255,255,0.25)',
+              border: 'none',
+              borderRadius: 'var(--radius-pill)',
+              padding: '8px 14px',
+              color: '#fff',
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+            }}
+          >
+            💌 提醒TA
+          </button>
         </div>
       </div>
 
@@ -204,6 +322,77 @@ export default function ChatPage() {
 
       {/* Chat Input */}
       <ChatInput onSend={handleSend} loading={sending} />
+
+      {/* Reminder Popup */}
+      <Popup
+        visible={showReminderPopup}
+        onClose={() => setShowReminderPopup(false)}
+        height="auto"
+      >
+        <div style={{ padding: 20 }}>
+          <h3 style={{ fontSize: 18, fontWeight: 600, margin: '0 0 16px' }}>💌 提醒 TA</h3>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+          }}>
+            {/* Quick shortcuts */}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {['该记账啦', '别忘了买菜', '回家路上注意安全', '想你了'].map((q) => (
+                <button
+                  key={q}
+                  onClick={() => setReminderText(q)}
+                  className="pressable"
+                  style={{
+                    background: reminderText === q ? 'var(--gradient-primary)' : 'var(--bg-secondary)',
+                    color: reminderText === q ? '#fff' : 'var(--text-secondary)',
+                    border: '1px solid var(--border-light)',
+                    borderRadius: 'var(--radius-pill)',
+                    padding: '6px 14px',
+                    fontSize: 13,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              background: 'var(--bg-secondary)',
+              borderRadius: 'var(--radius-md)',
+              padding: '0 14px',
+              border: '1.5px solid var(--border-light)',
+            }}>
+              <input
+                placeholder="输入提醒内容..."
+                value={reminderText}
+                onChange={(e) => setReminderText(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') sendReminder(); }}
+                style={{
+                  flex: 1,
+                  border: 'none',
+                  outline: 'none',
+                  background: 'transparent',
+                  fontSize: 15,
+                  padding: '12px 0',
+                  color: 'var(--text)',
+                }}
+              />
+            </div>
+            <Button
+              block
+              size="lg"
+              onClick={sendReminder}
+              loading={reminderSending}
+              disabled={!reminderText.trim()}
+            >
+              发送提醒
+            </Button>
+          </div>
+        </div>
+      </Popup>
     </div>
   );
 }

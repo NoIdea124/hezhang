@@ -9,17 +9,28 @@ import { IconPlus } from '@/components/ui/icons';
 import FilterBar from '@/components/bills/FilterBar';
 import ExpenseList from '@/components/bills/ExpenseList';
 import { apiFetch } from '@/lib/api';
+import { useAuthStore } from '@/stores/authStore';
 import { getCurrentMonth, formatCurrency } from '@/lib/format';
-import type { Expense } from '@hezhang/shared';
+import type { Expense, Comment } from '@hezhang/shared';
+
+interface CommentNotification {
+  id: string;
+  expenseId: string;
+  nickname: string;
+  content: string;
+  expenseLabel: string;
+}
 
 export default function BillsPage() {
   const router = useRouter();
+  const user = useAuthStore((s) => s.user);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [category, setCategory] = useState('');
   const [month, setMonth] = useState(getCurrentMonth());
   const [ownership, setOwnership] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [commentNotifs, setCommentNotifs] = useState<CommentNotification[]>([]);
 
   const loadExpenses = useCallback(async () => {
     setLoading(true);
@@ -48,10 +59,29 @@ export default function BillsPage() {
       if (event.type?.startsWith('expense:')) {
         loadExpenses();
       }
+      // Show comment notification banner for comments from others
+      if (event.type === 'comment:created') {
+        const comment = event.data as Comment;
+        if (comment.user_id !== user?.id) {
+          setCommentNotifs((prev) => [{
+            id: comment.id,
+            expenseId: comment.expense_id,
+            nickname: comment.user_nickname || '伴侣',
+            content: comment.content,
+            expenseLabel: comment.expense_note || comment.expense_category || '账单',
+          }, ...prev]);
+          // Also refresh list to update comment counts
+          loadExpenses();
+          // Auto-dismiss after 8s
+          setTimeout(() => {
+            setCommentNotifs((prev) => prev.filter((n) => n.id !== comment.id));
+          }, 8000);
+        }
+      }
     };
     window.addEventListener('ws-sync', handler);
     return () => window.removeEventListener('ws-sync', handler);
-  }, [loadExpenses]);
+  }, [loadExpenses, user?.id]);
 
   const handleDeleteConfirm = async () => {
     if (!deleteConfirm) return;
@@ -65,6 +95,10 @@ export default function BillsPage() {
     setDeleteConfirm(null);
   };
 
+  const dismissNotif = (id: string) => {
+    setCommentNotifs((prev) => prev.filter((n) => n.id !== id));
+  };
+
   const total = expenses.reduce((sum, e) => sum + e.amount, 0);
 
   return (
@@ -75,6 +109,50 @@ export default function BillsPage() {
           合计 <span style={{ color: 'var(--primary)', fontWeight: 600 }}>{formatCurrency(total)}</span>
         </span>
       </div>
+
+      {/* Comment notification banners */}
+      {commentNotifs.length > 0 && (
+        <div style={{ padding: '0 16px 8px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {commentNotifs.map((n) => (
+            <div
+              key={n.id}
+              onClick={() => {
+                dismissNotif(n.id);
+                router.push(`/expense/${n.expenseId}`);
+              }}
+              className="pressable"
+              style={{
+                background: 'linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%)',
+                borderRadius: 'var(--radius-md)',
+                padding: '10px 14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                cursor: 'pointer',
+                animation: 'fadeInDown 300ms var(--ease-spring)',
+              }}
+            >
+              <span style={{ fontSize: 18 }}>💬</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, color: '#1565C0', fontWeight: 500 }}>
+                  {n.nickname} 评论了「{n.expenseLabel}」
+                </div>
+                <div style={{
+                  fontSize: 12,
+                  color: '#1976D2',
+                  marginTop: 2,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {n.content}
+                </div>
+              </div>
+              <span style={{ fontSize: 12, color: '#1976D2', flexShrink: 0 }}>查看 &gt;</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       <FilterBar
         category={category}

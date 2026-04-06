@@ -40,6 +40,8 @@ export default function TabsLayout({
       case 'notification':
         showToast(event.data.message);
         break;
+      case 'comment:created':
+      case 'reminder:created':
       case 'expense:created':
       case 'expense:updated':
       case 'expense:deleted':

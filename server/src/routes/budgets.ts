@@ -71,9 +71,18 @@ export default async function budgetRoutes(fastify: FastifyInstance) {
     }
 
     const data = request.body as { total_amount?: number; categories?: any[] };
-    const budget = updateBudget(id, request.spaceId, data);
+    const budget = updateBudget(id, request.spaceId, data, request.userId);
     if (budget) {
       broadcast(request.spaceId!, { type: 'budget:updated', data: budget });
+      // Notify partner about budget change needing confirmation
+      if (budget.status !== 'active') {
+        const { getUserById } = await import('../services/auth.service.js');
+        const user = getUserById(request.userId);
+        broadcast(request.spaceId!, {
+          type: 'notification',
+          data: { message: `${user?.nickname || '伴侣'}修改了预算，请确认` },
+        });
+      }
     }
     return { budget };
   });

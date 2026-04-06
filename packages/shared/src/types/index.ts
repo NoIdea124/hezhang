@@ -5,3 +5,6 @@ export * from './chat';
 export * from './ws';
 export * from './space';
 export * from './category';
+export * from './comment';
+export * from './feedback';
+export * from './reminder';

@@ -34,7 +34,8 @@ export function getExpenseById(id: string): Expense | null {
 
 export function getExpenses(spaceId: string, filter: ExpenseFilter): Expense[] {
   let sql = `
-    SELECT e.*, u.nickname as user_nickname
+    SELECT e.*, u.nickname as user_nickname,
+      (SELECT COUNT(*) FROM comments c WHERE c.expense_id = e.id) as comment_count
     FROM expenses e
     JOIN users u ON e.user_id = u.id
     WHERE e.space_id = ?

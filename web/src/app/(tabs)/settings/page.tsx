@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import Dialog from '@/components/ui/Dialog';
 import { ListGroup, ListItem } from '@/components/ui/ListGroup';
@@ -14,6 +15,7 @@ import { IconLogout, IconPlus } from '@/components/ui/icons';
 import type { Space, SpaceMember, User, CustomCategory } from '@hezhang/shared';
 
 export default function SettingsPage() {
+  const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const space = useAuthStore((s) => s.space);
   const logout = useAuthStore((s) => s.logout);
@@ -242,6 +244,13 @@ export default function SettingsPage() {
           prefix={<IconPlus size={16} color="var(--primary)" />}
         >
           添加分类
+        </ListItem>
+      </ListGroup>
+
+      {/* Feedback */}
+      <ListGroup header="关于">
+        <ListItem onClick={() => router.push('/feedback')}>
+          产品反馈
         </ListItem>
       </ListGroup>
 

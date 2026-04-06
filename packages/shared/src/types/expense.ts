@@ -15,6 +15,7 @@ export interface Expense {
   updated_at: string;
   // joined fields
   user_nickname?: string;
+  comment_count?: number;
 }
 
 export interface ExpenseCreate {

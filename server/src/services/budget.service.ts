@@ -81,7 +81,8 @@ export function getBudgetByMonth(spaceId: string, month: string): BudgetWithSpen
 export function updateBudget(
   id: string,
   spaceId: string,
-  data: { total_amount?: number; categories?: BudgetCategory[] }
+  data: { total_amount?: number; categories?: BudgetCategory[] },
+  userId?: string
 ): Budget | null {
   const existing = getBudgetById(id);
   if (!existing || existing.space_id !== spaceId) return null;
@@ -100,9 +101,19 @@ export function updateBudget(
 
   if (sets.length === 0) return existing;
 
-  // Reset confirmation on any change
-  sets.push("confirmed_by = '[]'");
-  sets.push("status = 'draft'");
+  // Reset confirmation — keep modifier's own confirmation, require partner to re-confirm
+  const confirmedBy = userId ? [userId] : [];
+  sets.push('confirmed_by = ?');
+  params.push(JSON.stringify(confirmedBy));
+
+  // Check if this alone is enough to activate (solo space)
+  const memberCount = (db.prepare(
+    'SELECT COUNT(*) as count FROM space_members WHERE space_id = ?'
+  ).get(spaceId) as { count: number }).count;
+  const status = confirmedBy.length >= memberCount ? 'active' : 'pending';
+  sets.push('status = ?');
+  params.push(status);
+
   params.push(id);
 
   db.prepare(`UPDATE budgets SET ${sets.join(', ')} WHERE id = ?`).run(...params);
