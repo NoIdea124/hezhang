@@ -3,9 +3,8 @@ import type { Feedback } from '@hezhang/shared';
 
 export function getAllFeedback(): Feedback[] {
   return db.prepare(`
-    SELECT f.*, u.nickname as user_nickname
+    SELECT f.id, f.user_id, f.content, f.created_at
     FROM feedback f
-    JOIN users u ON f.user_id = u.id
     ORDER BY f.created_at DESC
   `).all() as Feedback[];
 }
@@ -17,9 +16,13 @@ export function createFeedback(userId: string, content: string): Feedback {
   ).run(id, userId, content);
 
   return db.prepare(`
-    SELECT f.*, u.nickname as user_nickname
+    SELECT f.id, f.user_id, f.content, f.created_at
     FROM feedback f
-    JOIN users u ON f.user_id = u.id
     WHERE f.id = ?
   `).get(id) as Feedback;
+}
+
+export function deleteFeedback(id: string): boolean {
+  const result = db.prepare('DELETE FROM feedback WHERE id = ?').run(id);
+  return result.changes > 0;
 }

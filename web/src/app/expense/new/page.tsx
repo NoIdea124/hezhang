@@ -17,7 +17,10 @@ export default function NewExpensePage() {
     try {
       await apiFetch('/expenses', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          special_budget_id: data.special_budget_id || null,
+        }),
       });
       showToast({ message: '记录成功！', type: 'success' });
       router.back();

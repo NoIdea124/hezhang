@@ -46,6 +46,7 @@ export default async function expenseRoutes(fastify: FastifyInstance) {
       category: query.category,
       ownership: query.ownership as any,
       user_id: query.user_id,
+      special_budget_id: query.special_budget_id,
     };
 
     const expenses = getExpenses(request.spaceId, filter);

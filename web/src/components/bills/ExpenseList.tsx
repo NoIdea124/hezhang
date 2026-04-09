@@ -90,6 +90,11 @@ export default function ExpenseList({ expenses, onDelete }: Props) {
                         个人
                       </span>
                     )}
+                    {exp.special_budget_name && (
+                      <span style={{ marginLeft: 6, color: 'var(--accent-lavender)', fontSize: 11 }}>
+                        🎯{exp.special_budget_name}
+                      </span>
+                    )}
                     {(exp.comment_count ?? 0) > 0 && (
                       <span style={{ marginLeft: 6, fontSize: 11, color: 'var(--primary)' }}>
                         💬{exp.comment_count}

@@ -13,6 +13,8 @@ import sttRoutes from './routes/stt.js';
 import commentRoutes from './routes/comments.js';
 import feedbackRoutes from './routes/feedback.js';
 import reminderRoutes from './routes/reminders.js';
+import membershipCardRoutes from './routes/membershipCards.js';
+import specialBudgetRoutes from './routes/specialBudgets.js';
 
 export async function buildApp() {
   const app = Fastify({
@@ -45,10 +47,12 @@ export async function buildApp() {
   await app.register(commentRoutes);
   await app.register(feedbackRoutes);
   await app.register(reminderRoutes);
+  await app.register(membershipCardRoutes);
+  await app.register(specialBudgetRoutes);
 
   // Health check
   app.get('/api/health', async () => {
-    return { status: 'ok', time: new Date().toISOString() };
+    return { status: 'ok', time: new Date(Date.now() + 8 * 3600_000).toISOString() };
   });
 
   return app;

@@ -149,6 +149,14 @@ export default function BudgetPage() {
             <Button
               variant="outline"
               size="lg"
+              onClick={() => router.push('/special-budgets')}
+              style={{ width: 200 }}
+            >
+              🎯 专项预算
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
               onClick={() => router.push(`/report?month=${month}`)}
               style={{ width: 200 }}
             >
@@ -294,6 +302,26 @@ export default function BudgetPage() {
             >
               删除预算
             </Button>
+          </div>
+
+          {/* Special budgets link */}
+          <div
+            onClick={() => router.push('/special-budgets')}
+            className="pressable"
+            style={{
+              marginTop: 12,
+              padding: '12px 14px',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: 'var(--card-bg)',
+              boxShadow: 'var(--shadow-sm)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+            }}
+          >
+            <span style={{ fontSize: 14 }}>🎯 专项预算</span>
+            <IconChevronRight size={16} color="var(--text-secondary)" />
           </div>
         </div>
       )}

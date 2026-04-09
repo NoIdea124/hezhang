@@ -247,6 +247,16 @@ export default function SettingsPage() {
         </ListItem>
       </ListGroup>
 
+      {/* Tools */}
+      <ListGroup header="工具">
+        <ListItem onClick={() => router.push('/membership-cards')}>
+          💳 会员卡管理
+        </ListItem>
+        <ListItem onClick={() => router.push('/special-budgets')}>
+          🎯 专项预算
+        </ListItem>
+      </ListGroup>
+
       {/* Feedback */}
       <ListGroup header="关于">
         <ListItem onClick={() => router.push('/feedback')}>

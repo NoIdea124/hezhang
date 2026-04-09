@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Button from '@/components/ui/Button';
 import Switch from '@/components/ui/Switch';
 import DatePicker from '@/components/ui/DatePicker';
 import { showToast } from '@/lib/toast';
+import { getToday } from '@/lib/format';
 import { useCategories } from '@/hooks/useCategories';
-import type { Ownership } from '@hezhang/shared';
+import { apiFetch } from '@/lib/api';
+import type { Ownership, SpecialBudget } from '@hezhang/shared';
 
 export interface ExpenseFormData {
   amount: number;
@@ -14,6 +16,7 @@ export interface ExpenseFormData {
   note: string;
   expense_date: string;
   ownership: Ownership;
+  special_budget_id?: string | null;
 }
 
 interface Props {
@@ -28,9 +31,17 @@ export default function ExpenseForm({ initialData, onSubmit, submitText = '记�
   const [amount, setAmount] = useState(initialData?.amount?.toString() || '');
   const [category, setCategory] = useState(initialData?.category || '');
   const [note, setNote] = useState(initialData?.note || '');
-  const [expenseDate, setExpenseDate] = useState(initialData?.expense_date || new Date().toISOString().split('T')[0]);
+  const [expenseDate, setExpenseDate] = useState(initialData?.expense_date || getToday());
   const [ownership, setOwnership] = useState<Ownership>(initialData?.ownership || 'shared');
   const [datePickerVisible, setDatePickerVisible] = useState(false);
+  const [specialBudgetId, setSpecialBudgetId] = useState<string | null>(initialData?.special_budget_id || null);
+  const [specialBudgets, setSpecialBudgets] = useState<SpecialBudget[]>([]);
+
+  useEffect(() => {
+    apiFetch<{ budgets: SpecialBudget[] }>('/special-budgets')
+      .then((res) => setSpecialBudgets(res.budgets))
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = async () => {
     const num = parseFloat(amount);
@@ -48,6 +59,7 @@ export default function ExpenseForm({ initialData, onSubmit, submitText = '记�
       note,
       expense_date: expenseDate,
       ownership,
+      special_budget_id: specialBudgetId,
     });
   };
 
@@ -174,7 +186,7 @@ export default function ExpenseForm({ initialData, onSubmit, submitText = '记�
 
       {/* Ownership */}
       <div style={{
-        marginBottom: 24,
+        marginBottom: specialBudgets.length > 0 ? 12 : 24,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -196,6 +208,55 @@ export default function ExpenseForm({ initialData, onSubmit, submitText = '记�
           onChange={(v) => setOwnership(v ? 'shared' : 'personal')}
         />
       </div>
+
+      {/* Special Budget */}
+      {specialBudgets.length > 0 && (
+        <div style={{ marginBottom: 24 }}>
+          <label style={labelStyle}>专项预算（可选）</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            <div
+              onClick={() => setSpecialBudgetId(null)}
+              className="pressable"
+              style={{
+                padding: '8px 14px',
+                borderRadius: 'var(--radius-pill)',
+                cursor: 'pointer',
+                fontSize: 13,
+                border: `1.5px solid ${!specialBudgetId ? 'var(--primary)' : 'var(--border)'}`,
+                background: !specialBudgetId ? 'rgba(255,107,107,0.08)' : 'var(--card-bg)',
+                color: !specialBudgetId ? 'var(--primary)' : 'var(--text-secondary)',
+                fontWeight: !specialBudgetId ? 500 : 400,
+              }}
+            >
+              无
+            </div>
+            {specialBudgets.map((sb) => (
+              <div
+                key={sb.id}
+                onClick={() => setSpecialBudgetId(sb.id)}
+                className="pressable"
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: 'var(--radius-pill)',
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  border: `1.5px solid ${specialBudgetId === sb.id ? 'var(--primary)' : 'var(--border)'}`,
+                  background: specialBudgetId === sb.id ? 'rgba(255,107,107,0.08)' : 'var(--card-bg)',
+                  color: specialBudgetId === sb.id ? 'var(--primary)' : 'var(--text)',
+                  fontWeight: specialBudgetId === sb.id ? 500 : 400,
+                }}
+              >
+                {sb.icon} {sb.name}
+              </div>
+            ))}
+          </div>
+          {specialBudgetId && (
+            <div style={{ fontSize: 12, color: 'var(--accent-lavender)', marginTop: 6 }}>
+              计入专项预算，不计入月度预算
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Submit */}
       <Button block size="lg" loading={loading} onClick={handleSubmit}>

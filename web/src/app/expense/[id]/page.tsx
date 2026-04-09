@@ -65,7 +65,10 @@ export default function EditExpensePage() {
     try {
       await apiFetch(`/expenses/${id}`, {
         method: 'PUT',
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          special_budget_id: data.special_budget_id || null,
+        }),
       });
       showToast({ message: '修改成功！', type: 'success' });
       router.back();
@@ -127,6 +130,7 @@ export default function EditExpensePage() {
           note: expense.note,
           expense_date: expense.expense_date,
           ownership: expense.ownership,
+          special_budget_id: expense.special_budget_id,
         }}
         onSubmit={handleSubmit}
         submitText="保存修改"

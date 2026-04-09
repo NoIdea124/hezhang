@@ -49,8 +49,8 @@ export default async function budgetRoutes(fastify: FastifyInstance) {
     }
 
     const query = request.query as Record<string, string>;
-    const now = new Date();
-    const month = query.month || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const now = new Date(Date.now() + 8 * 3600_000);
+    const month = query.month || `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
 
     const budget = getBudgetByMonth(request.spaceId, month);
     return { budget };

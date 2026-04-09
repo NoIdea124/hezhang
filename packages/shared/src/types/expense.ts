@@ -13,9 +13,11 @@ export interface Expense {
   original_input: string | null;
   created_at: string;
   updated_at: string;
+  special_budget_id: string | null;
   // joined fields
   user_nickname?: string;
   comment_count?: number;
+  special_budget_name?: string;
 }
 
 export interface ExpenseCreate {
@@ -26,6 +28,7 @@ export interface ExpenseCreate {
   ownership?: Ownership;
   ai_classified?: boolean;
   original_input?: string;
+  special_budget_id?: string | null;
 }
 
 export interface ExpenseUpdate {
@@ -34,6 +37,7 @@ export interface ExpenseUpdate {
   note?: string;
   expense_date?: string;
   ownership?: Ownership;
+  special_budget_id?: string | null;
 }
 
 export interface ExpenseFilter {
@@ -41,4 +45,5 @@ export interface ExpenseFilter {
   category?: string;
   ownership?: Ownership;
   user_id?: string;
+  special_budget_id?: string;
 }

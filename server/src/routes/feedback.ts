@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { getAllFeedback, createFeedback } from '../services/feedback.service.js';
+import { getAllFeedback, createFeedback, deleteFeedback } from '../services/feedback.service.js';
 
 export default async function feedbackRoutes(fastify: FastifyInstance) {
   // Get all feedback (public)
@@ -25,5 +25,17 @@ export default async function feedbackRoutes(fastify: FastifyInstance) {
 
     const feedback = createFeedback(request.userId, content.trim());
     return { feedback };
+  });
+
+  // Delete feedback
+  fastify.delete('/api/feedback/:id', {
+    preHandler: [fastify.authenticate],
+  }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const deleted = deleteFeedback(id);
+    if (!deleted) {
+      return reply.code(404).send({ error: '反馈不存在' });
+    }
+    return { success: true };
   });
 }

@@ -3,17 +3,18 @@ import type { Expense, ExpenseCreate, ExpenseUpdate, ExpenseFilter } from '@hezh
 
 export function createExpense(spaceId: string, userId: string, data: ExpenseCreate): Expense {
   const id = crypto.randomUUID();
-  const now = new Date().toISOString();
-  const expenseDate = data.expense_date || new Date().toISOString().split('T')[0];
+  const now = new Date(Date.now() + 8 * 3600_000).toISOString();
+  const expenseDate = data.expense_date || now.split('T')[0];
 
   db.prepare(`
-    INSERT INTO expenses (id, space_id, user_id, amount, category, note, expense_date, ownership, ai_classified, original_input, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO expenses (id, space_id, user_id, amount, category, note, expense_date, ownership, ai_classified, original_input, special_budget_id, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     id, spaceId, userId,
     data.amount, data.category, data.note || '',
     expenseDate, data.ownership || 'shared',
     data.ai_classified ? 1 : 0, data.original_input || null,
+    data.special_budget_id || null,
     now, now
   );
 
@@ -22,9 +23,10 @@ export function createExpense(spaceId: string, userId: string, data: ExpenseCrea
 
 export function getExpenseById(id: string): Expense | null {
   const row = db.prepare(`
-    SELECT e.*, u.nickname as user_nickname
+    SELECT e.*, u.nickname as user_nickname, sb.name as special_budget_name
     FROM expenses e
     JOIN users u ON e.user_id = u.id
+    LEFT JOIN special_budgets sb ON e.special_budget_id = sb.id
     WHERE e.id = ?
   `).get(id) as (Expense & { ai_classified: number }) | undefined;
 
@@ -35,9 +37,11 @@ export function getExpenseById(id: string): Expense | null {
 export function getExpenses(spaceId: string, filter: ExpenseFilter): Expense[] {
   let sql = `
     SELECT e.*, u.nickname as user_nickname,
-      (SELECT COUNT(*) FROM comments c WHERE c.expense_id = e.id) as comment_count
+      (SELECT COUNT(*) FROM comments c WHERE c.expense_id = e.id) as comment_count,
+      sb.name as special_budget_name
     FROM expenses e
     JOIN users u ON e.user_id = u.id
+    LEFT JOIN special_budgets sb ON e.special_budget_id = sb.id
     WHERE e.space_id = ?
   `;
   const params: any[] = [spaceId];
@@ -62,6 +66,11 @@ export function getExpenses(spaceId: string, filter: ExpenseFilter): Expense[] {
     params.push(filter.user_id);
   }
 
+  if (filter.special_budget_id) {
+    sql += ` AND e.special_budget_id = ?`;
+    params.push(filter.special_budget_id);
+  }
+
   sql += ` ORDER BY e.expense_date DESC, e.created_at DESC`;
 
   const rows = db.prepare(sql).all(...params) as (Expense & { ai_classified: number })[];
@@ -80,10 +89,11 @@ export function updateExpense(id: string, userId: string, data: ExpenseUpdate): 
   if (data.note !== undefined) { sets.push('note = ?'); params.push(data.note); }
   if (data.expense_date !== undefined) { sets.push('expense_date = ?'); params.push(data.expense_date); }
   if (data.ownership !== undefined) { sets.push('ownership = ?'); params.push(data.ownership); }
+  if (data.special_budget_id !== undefined) { sets.push('special_budget_id = ?'); params.push(data.special_budget_id); }
 
   if (sets.length === 0) return existing;
 
-  sets.push("updated_at = datetime('now')");
+  sets.push("updated_at = datetime('now', '+8 hours')");
   params.push(id);
 
   db.prepare(`UPDATE expenses SET ${sets.join(', ')} WHERE id = ?`).run(...params);
@@ -97,7 +107,7 @@ export function deleteExpense(id: string): boolean {
 }
 
 export function getMonthlyTotal(spaceId: string, month: string, ownership?: string): number {
-  let sql = `SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE space_id = ? AND strftime('%Y-%m', expense_date) = ?`;
+  let sql = `SELECT COALESCE(SUM(amount), 0) as total FROM expenses WHERE space_id = ? AND strftime('%Y-%m', expense_date) = ? AND special_budget_id IS NULL`;
   const params: any[] = [spaceId, month];
 
   if (ownership) {
@@ -113,7 +123,7 @@ export function getCategoryTotals(spaceId: string, month: string): Record<string
   const rows = db.prepare(`
     SELECT category, SUM(amount) as total
     FROM expenses
-    WHERE space_id = ? AND strftime('%Y-%m', expense_date) = ?
+    WHERE space_id = ? AND strftime('%Y-%m', expense_date) = ? AND special_budget_id IS NULL
     GROUP BY category
   `).all(spaceId, month) as { category: string; total: number }[];
 

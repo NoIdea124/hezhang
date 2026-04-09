@@ -67,11 +67,11 @@ export function getReportData(spaceId: string, month: string): ReportData {
 
   // Calculate days with spending for daily average
   const [y, m] = month.split('-').map(Number);
-  const now = new Date();
-  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const now = new Date(Date.now() + 8 * 3600_000);
+  const currentMonth = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
   const daysInMonth = month < currentMonth
     ? new Date(y, m, 0).getDate()
-    : now.getDate();
+    : now.getUTCDate();
   const dailyAvg = daysInMonth > 0 ? Math.round((totalSpent / daysInMonth) * 100) / 100 : 0;
 
   // Highest day
