@@ -49,7 +49,7 @@ export default async function expenseRoutes(fastify: FastifyInstance) {
       special_budget_id: query.special_budget_id,
     };
 
-    const expenses = getExpenses(request.spaceId, filter);
+    const expenses = getExpenses(request.spaceId, filter, request.userId);
     return { expenses };
   });
 

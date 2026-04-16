@@ -52,7 +52,7 @@ export async function buildApp() {
 
   // Health check
   app.get('/api/health', async () => {
-    return { status: 'ok', time: new Date(Date.now() + 8 * 3600_000).toISOString() };
+    return { status: 'ok', time: new Date().toISOString() };
   });
 
   return app;

@@ -3,7 +3,7 @@ import type { Expense, ExpenseCreate, ExpenseUpdate, ExpenseFilter } from '@hezh
 
 export function createExpense(spaceId: string, userId: string, data: ExpenseCreate): Expense {
   const id = crypto.randomUUID();
-  const now = new Date(Date.now() + 8 * 3600_000).toISOString();
+  const now = new Date().toISOString();
   const expenseDate = data.expense_date || now.split('T')[0];
 
   db.prepare(`
@@ -34,17 +34,18 @@ export function getExpenseById(id: string): Expense | null {
   return { ...row, ai_classified: !!row.ai_classified };
 }
 
-export function getExpenses(spaceId: string, filter: ExpenseFilter): Expense[] {
+export function getExpenses(spaceId: string, filter: ExpenseFilter, userId?: string): Expense[] {
   let sql = `
     SELECT e.*, u.nickname as user_nickname,
       (SELECT COUNT(*) FROM comments c WHERE c.expense_id = e.id) as comment_count,
-      sb.name as special_budget_name
+      sb.name as special_budget_name,
+      (SELECT MAX(c2.created_at) FROM comments c2 WHERE c2.expense_id = e.id AND c2.user_id != ?) as latest_other_comment_at
     FROM expenses e
     JOIN users u ON e.user_id = u.id
     LEFT JOIN special_budgets sb ON e.special_budget_id = sb.id
     WHERE e.space_id = ?
   `;
-  const params: any[] = [spaceId];
+  const params: any[] = [userId || '', spaceId];
 
   if (filter.month) {
     sql += ` AND strftime('%Y-%m', e.expense_date) = ?`;
@@ -93,7 +94,7 @@ export function updateExpense(id: string, userId: string, data: ExpenseUpdate): 
 
   if (sets.length === 0) return existing;
 
-  sets.push("updated_at = datetime('now', '+8 hours')");
+  sets.push("updated_at = datetime('now')");
   params.push(id);
 
   db.prepare(`UPDATE expenses SET ${sets.join(', ')} WHERE id = ?`).run(...params);

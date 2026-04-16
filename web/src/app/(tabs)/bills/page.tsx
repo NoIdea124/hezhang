@@ -13,6 +13,22 @@ import { useAuthStore } from '@/stores/authStore';
 import { getCurrentMonth, formatCurrency } from '@/lib/format';
 import type { Expense, Comment } from '@hezhang/shared';
 
+const COMMENT_READ_KEY = 'hezhang_comment_read';
+
+function getCommentReadMap(): Record<string, string> {
+  try {
+    return JSON.parse(localStorage.getItem(COMMENT_READ_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function markCommentRead(expenseId: string) {
+  const map = getCommentReadMap();
+  map[expenseId] = new Date().toISOString();
+  localStorage.setItem(COMMENT_READ_KEY, JSON.stringify(map));
+}
+
 interface CommentNotification {
   id: string;
   expenseId: string;
@@ -31,6 +47,20 @@ export default function BillsPage() {
   const [ownership, setOwnership] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [commentNotifs, setCommentNotifs] = useState<CommentNotification[]>([]);
+  const [commentReadMap, setCommentReadMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    setCommentReadMap(getCommentReadMap());
+  }, []);
+
+  // Listen for navigation back from expense detail to refresh read state
+  useEffect(() => {
+    const handleFocus = () => {
+      setCommentReadMap(getCommentReadMap());
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
 
   const loadExpenses = useCallback(async () => {
     setLoading(true);
@@ -118,6 +148,8 @@ export default function BillsPage() {
               key={n.id}
               onClick={() => {
                 dismissNotif(n.id);
+                markCommentRead(n.expenseId);
+                setCommentReadMap(getCommentReadMap());
                 router.push(`/expense/${n.expenseId}`);
               }}
               className="pressable"
@@ -170,7 +202,11 @@ export default function BillsPage() {
           ))}
         </div>
       ) : (
-        <ExpenseList expenses={expenses} onDelete={(id) => setDeleteConfirm(id)} />
+        <ExpenseList
+          expenses={expenses}
+          onDelete={(id) => setDeleteConfirm(id)}
+          commentReadMap={commentReadMap}
+        />
       )}
 
       <FloatingButton

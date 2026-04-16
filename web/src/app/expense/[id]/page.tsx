@@ -6,11 +6,22 @@ import NavBar from '@/components/ui/NavBar';
 import Button from '@/components/ui/Button';
 import Dialog from '@/components/ui/Dialog';
 import { showToast } from '@/lib/toast';
+import { formatDateTime } from '@/lib/format';
 import ExpenseForm from '@/components/expense/ExpenseForm';
 import type { ExpenseFormData } from '@/components/expense/ExpenseForm';
 import { apiFetch } from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
 import type { Expense, Comment } from '@hezhang/shared';
+
+const COMMENT_READ_KEY = 'hezhang_comment_read';
+
+function markCommentRead(expenseId: string) {
+  try {
+    const map = JSON.parse(localStorage.getItem(COMMENT_READ_KEY) || '{}');
+    map[expenseId] = new Date().toISOString();
+    localStorage.setItem(COMMENT_READ_KEY, JSON.stringify(map));
+  } catch {}
+}
 
 export default function EditExpensePage() {
   const router = useRouter();
@@ -27,6 +38,7 @@ export default function EditExpensePage() {
   useEffect(() => {
     loadExpense();
     loadComments();
+    markCommentRead(id);
   }, [id]);
 
   // Listen for WS comment events
@@ -183,7 +195,7 @@ export default function EditExpensePage() {
                   {c.content}
                 </div>
                 <span style={{ fontSize: 10, color: 'var(--text-secondary)', marginTop: 2 }}>
-                  {new Date(c.created_at).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  {formatDateTime(c.created_at)}
                 </span>
               </div>
             );

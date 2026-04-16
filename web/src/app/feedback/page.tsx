@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import NavBar from '@/components/ui/NavBar';
 import { showToast } from '@/lib/toast';
+import { formatDateTime } from '@/lib/format';
 import { apiFetch } from '@/lib/api';
 import type { Feedback } from '@hezhang/shared';
 
@@ -92,9 +93,9 @@ export default function FeedbackPage() {
           top: 0,
           left: '50%',
           transform: 'translateX(-50%)',
-          width: 120,
-          height: 50,
-          zIndex: 101,
+          width: 140,
+          height: 54,
+          zIndex: 201,
         }}
       />
 
@@ -145,7 +146,7 @@ export default function FeedbackPage() {
                     匿名用户
                   </span>
                   <span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
-                    {new Date(fb.created_at).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    {formatDateTime(fb.created_at)}
                   </span>
                 </div>
                 <p style={{ fontSize: 14, color: 'var(--text)', margin: 0, lineHeight: 1.5, wordBreak: 'break-word' }}>

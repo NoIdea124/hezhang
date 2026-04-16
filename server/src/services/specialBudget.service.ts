@@ -24,7 +24,7 @@ export function getSpecialBudgetById(id: string): SpecialBudget | null {
 
 export function createSpecialBudget(spaceId: string, data: SpecialBudgetCreate): SpecialBudget {
   const id = crypto.randomUUID();
-  const now = new Date(Date.now() + 8 * 3600_000).toISOString();
+  const now = new Date().toISOString();
 
   db.prepare(`
     INSERT INTO special_budgets (id, space_id, name, icon, total_amount, created_at, updated_at)
@@ -47,7 +47,7 @@ export function updateSpecialBudget(id: string, data: SpecialBudgetUpdate): Spec
 
   if (sets.length === 0) return existing;
 
-  sets.push("updated_at = datetime('now', '+8 hours')");
+  sets.push("updated_at = datetime('now')");
   params.push(id);
 
   db.prepare(`UPDATE special_budgets SET ${sets.join(', ')} WHERE id = ?`).run(...params);

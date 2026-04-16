@@ -18,6 +18,7 @@ export interface Expense {
   user_nickname?: string;
   comment_count?: number;
   special_budget_name?: string;
+  latest_other_comment_at?: string | null;
 }
 
 export interface ExpenseCreate {

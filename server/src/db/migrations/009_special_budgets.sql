@@ -5,8 +5,8 @@ CREATE TABLE IF NOT EXISTS special_budgets (
   name TEXT NOT NULL,
   icon TEXT NOT NULL DEFAULT '🎯',
   total_amount REAL NOT NULL DEFAULT 0,
-  created_at TEXT DEFAULT (datetime('now', '+8 hours')),
-  updated_at TEXT DEFAULT (datetime('now', '+8 hours'))
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_special_budgets_space ON special_budgets(space_id);

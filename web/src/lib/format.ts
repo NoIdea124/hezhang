@@ -35,3 +35,16 @@ export function getCurrentMonth(): string {
 export function getToday(): string {
   return getBeijingNow().toISOString().split('T')[0];
 }
+
+/** Format a UTC ISO timestamp to Beijing time display (M月D日 HH:MM) */
+export function formatDateTime(utcStr: string): string {
+  const d = new Date(utcStr);
+  // toLocaleString with zh-CN and Shanghai timezone handles DST-free +8
+  return d.toLocaleString('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}

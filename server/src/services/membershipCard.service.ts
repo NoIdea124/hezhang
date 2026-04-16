@@ -24,7 +24,7 @@ export function getCardById(id: string): MembershipCard | null {
 
 export function createCard(spaceId: string, userId: string, data: MembershipCardCreate): MembershipCard {
   const id = crypto.randomUUID();
-  const now = new Date(Date.now() + 8 * 3600_000).toISOString();
+  const now = new Date().toISOString();
 
   db.prepare(`
     INSERT INTO membership_cards (id, space_id, user_id, store_name, balance, note, created_at, updated_at)
@@ -47,7 +47,7 @@ export function updateCard(id: string, data: MembershipCardUpdate): MembershipCa
 
   if (sets.length === 0) return existing;
 
-  sets.push("updated_at = datetime('now', '+8 hours')");
+  sets.push("updated_at = datetime('now')");
   params.push(id);
 
   db.prepare(`UPDATE membership_cards SET ${sets.join(', ')} WHERE id = ?`).run(...params);
